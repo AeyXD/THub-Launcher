@@ -800,6 +800,15 @@ def apply_theme():
             _remap_widget_inline(w, _theme_light_active)
 
 
+def themed_color(mocha_hex):
+    """แปลงสี hex (รูปแบบ Mocha) เป็นสีของธีมปัจจุบัน — สำหรับโค้ดที่ใช้ QColor/painter
+    ตรง ๆ ซึ่ง stylesheet remap ไปไม่ถึง (delegate, setForeground ฯลฯ)
+    คู่สีอยู่ใน _MOCHA_TO_LATTE — เพิ่มสีใหม่ต้องเพิ่มคู่ในตารางด้วย"""
+    if not _theme_light_active:
+        return mocha_hex
+    return _MOCHA_TO_LATTE.get(mocha_hex.lower(), mocha_hex)
+
+
 # Duplicates removed, now imported from tstudio_ui_shared.py
 
 # =========================================================================

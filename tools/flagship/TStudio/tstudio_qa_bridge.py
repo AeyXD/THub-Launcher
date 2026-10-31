@@ -26,6 +26,15 @@ except ImportError:
         return key
 
 
+def _themed(mocha_hex):
+    """สีตามธีมปัจจุบันจากตารางกลางของ tstudio_app (lazy — เลี่ยง circular import)"""
+    try:
+        from tstudio_app import themed_color
+        return themed_color(mocha_hex)
+    except Exception:
+        return mocha_hex
+
+
 def find_checker(cfg):
     """คืน path ของ thai_qa.py ถ้าตั้งค่าไว้ (qa_checker_path) และมีไฟล์จริง มิฉะนั้น None"""
     p = (cfg or {}).get("qa_checker_path", "")
@@ -116,9 +125,9 @@ class QaResultDialog(QDialog):
                 QTableWidgetItem(r.get("Note") or ""),
             ]
             if sev == "error":
-                items[2].setForeground(QColor("#f38ba8"))
+                items[2].setForeground(QColor(_themed("#f38ba8")))
             elif sev == "warning":
-                items[2].setForeground(QColor("#f9e2af"))
+                items[2].setForeground(QColor(_themed("#f9e2af")))
             for col, it in enumerate(items):
                 self.table.setItem(i, col, it)
 

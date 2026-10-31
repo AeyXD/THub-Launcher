@@ -23,6 +23,15 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 
+def _themed(mocha_hex):
+    """สีตามธีมปัจจุบันจากตารางกลางของ tstudio_app (lazy — เลี่ยง circular import)"""
+    try:
+        from tstudio_app import themed_color
+        return themed_color(mocha_hex)
+    except Exception:
+        return mocha_hex
+
+
 from tstudio_analyzer import LocalizationAnalyzer
 from tstudio_core import TStudioCore
 
@@ -607,9 +616,9 @@ class LocalizationAnalyzerDialog(QDialog):
             it_pct = QTableWidgetItem(f"{pct}%")
             it_share = QTableWidgetItem(f"{share}% ของไฟล์เกม")
 
-            if pct >= 99.0: it_pct.setForeground(QColor("#a6e3a1"))
-            elif pct > 0: it_pct.setForeground(QColor("#f9e2af"))
-            else: it_pct.setForeground(QColor("#f38ba8"))
+            if pct >= 99.0: it_pct.setForeground(QColor(_themed("#a6e3a1")))
+            elif pct > 0: it_pct.setForeground(QColor(_themed("#f9e2af")))
+            else: it_pct.setForeground(QColor(_themed("#f38ba8")))
 
             self.tbl_overview.setItem(r_idx, 0, it_cat)
             self.tbl_overview.setItem(r_idx, 1, it_count)
@@ -628,8 +637,8 @@ class LocalizationAnalyzerDialog(QDialog):
             it_quote = QTableWidgetItem(char["sample_source"])
 
             it_name.setData(Qt.ItemDataRole.UserRole, char["first_row"])
-            it_name.setForeground(QColor("#89b4fa"))
-            it_th.setForeground(QColor("#a6e3a1"))
+            it_name.setForeground(QColor(_themed("#89b4fa")))
+            it_th.setForeground(QColor(_themed("#a6e3a1")))
 
             self.tbl_cast.setItem(r_idx, 0, it_name)
             self.tbl_cast.setItem(r_idx, 1, it_th)
@@ -669,16 +678,16 @@ class LocalizationAnalyzerDialog(QDialog):
             it_status = QTableWidgetItem("✅ ครบถ้วน" if q["is_complete"] else "⏳ กำลังแปล")
 
             it_en.setData(Qt.ItemDataRole.UserRole, q["first_row"])
-            it_en.setForeground(QColor("#89b4fa"))
-            it_th.setForeground(QColor("#a6e3a1"))
+            it_en.setForeground(QColor(_themed("#89b4fa")))
+            it_th.setForeground(QColor(_themed("#a6e3a1")))
 
-            if "Companion" in q["type"]: it_type.setForeground(QColor("#cba6f7"))
-            elif "Main" in q["type"] or "Primary" in q["type"]: it_type.setForeground(QColor("#f9e2af"))
-            elif "Crisis" in q["type"]: it_type.setForeground(QColor("#f38ba8"))
-            elif "Tactical" in q["type"]: it_type.setForeground(QColor("#89dceb"))
+            if "Companion" in q["type"]: it_type.setForeground(QColor(_themed("#cba6f7")))
+            elif "Main" in q["type"] or "Primary" in q["type"]: it_type.setForeground(QColor(_themed("#f9e2af")))
+            elif "Crisis" in q["type"]: it_type.setForeground(QColor(_themed("#f38ba8")))
+            elif "Tactical" in q["type"]: it_type.setForeground(QColor(_themed("#89dceb")))
 
-            if q["is_complete"]: it_status.setForeground(QColor("#a6e3a1"))
-            else: it_status.setForeground(QColor("#fab387"))
+            if q["is_complete"]: it_status.setForeground(QColor(_themed("#a6e3a1")))
+            else: it_status.setForeground(QColor(_themed("#fab387")))
 
             # 🌐 1-Click Web Search Button
             btn_search = QPushButton("🌐 Google")
@@ -757,12 +766,12 @@ class LocalizationAnalyzerDialog(QDialog):
             if b["all_indices"]:
                 it_root.setData(Qt.ItemDataRole.UserRole, b["all_indices"][0])
 
-            if b["type"] == "Skill": it_type.setForeground(QColor("#cba6f7"))
-            elif b["type"] == "Item": it_type.setForeground(QColor("#89b4fa"))
-            elif b["type"] == "Quest": it_type.setForeground(QColor("#f9e2af"))
+            if b["type"] == "Skill": it_type.setForeground(QColor(_themed("#cba6f7")))
+            elif b["type"] == "Item": it_type.setForeground(QColor(_themed("#89b4fa")))
+            elif b["type"] == "Quest": it_type.setForeground(QColor(_themed("#f9e2af")))
 
-            if b["is_complete"]: it_status.setForeground(QColor("#a6e3a1"))
-            else: it_status.setForeground(QColor("#fab387"))
+            if b["is_complete"]: it_status.setForeground(QColor(_themed("#a6e3a1")))
+            else: it_status.setForeground(QColor(_themed("#fab387")))
 
             self.tbl_bundles.setItem(r_idx, 0, it_type)
             self.tbl_bundles.setItem(r_idx, 1, it_root)
@@ -781,10 +790,10 @@ class LocalizationAnalyzerDialog(QDialog):
             it_sample = QTableWidgetItem(ent["sample_src"])
 
             it_term.setData(Qt.ItemDataRole.UserRole, ent["sample_row"])
-            it_term.setForeground(QColor("#89b4fa"))
+            it_term.setForeground(QColor(_themed("#89b4fa")))
 
-            if ent["in_glossary"]: it_status.setForeground(QColor("#a6e3a1"))
-            else: it_status.setForeground(QColor("#fab387"))
+            if ent["in_glossary"]: it_status.setForeground(QColor(_themed("#a6e3a1")))
+            else: it_status.setForeground(QColor(_themed("#fab387")))
 
             btn_add = QPushButton("+ เพิ่มเข้า Glossary")
             btn_add.setStyleSheet("padding: 2px 8px; font-size: 11px;")
@@ -813,7 +822,7 @@ class LocalizationAnalyzerDialog(QDialog):
             if c["variants"] and c["variants"][0]["row_indices"]:
                 it_src.setData(Qt.ItemDataRole.UserRole, c["variants"][0]["row_indices"][0])
 
-            it_src.setForeground(QColor("#fab387"))
+            it_src.setForeground(QColor(_themed("#fab387")))
             self.tbl_conflicts.setItem(r_idx, 0, it_src)
             self.tbl_conflicts.setItem(r_idx, 1, it_total)
             self.tbl_conflicts.setItem(r_idx, 2, it_vars)
@@ -830,8 +839,8 @@ class LocalizationAnalyzerDialog(QDialog):
             it_src = QTableWidgetItem(te["src"])
 
             it_row.setData(Qt.ItemDataRole.UserRole, te["idx"])
-            it_miss.setForeground(QColor("#f38ba8"))
-            it_extra.setForeground(QColor("#fab387"))
+            it_miss.setForeground(QColor(_themed("#f38ba8")))
+            it_extra.setForeground(QColor(_themed("#fab387")))
 
             self.tbl_tags.setItem(r_idx, 0, it_row)
             self.tbl_tags.setItem(r_idx, 1, it_uid)

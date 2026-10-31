@@ -9,6 +9,16 @@ from PyQt6.QtWidgets import QStyledItemDelegate, QStyle, QStyleOptionViewItem
 from PyQt6.QtGui import QTextDocument, QAbstractTextDocumentLayout, QPainter, QColor, QFont, QPen, QBrush
 from PyQt6.QtCore import QSize, Qt, QRect
 
+
+def _themed(mocha_hex):
+    """สีตามธีมปัจจุบันจากตารางกลางของ tstudio_app (lazy — เลี่ยง circular import)
+    ใช้กับทุกจุดที่ delegate วาดสีเอง เพราะ stylesheet remap ไปไม่ถึง painter"""
+    try:
+        from tstudio_app import themed_color
+        return themed_color(mocha_hex)
+    except Exception:
+        return mocha_hex
+
 class StatusPillDelegate(QStyledItemDelegate):
     """
     Renders clean status badges:
@@ -21,10 +31,10 @@ class StatusPillDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         if option.state & QStyle.StateFlag.State_Selected:
-            painter.fillRect(option.rect, QColor("#2a2b3d"))
-            painter.fillRect(QRect(option.rect.x(), option.rect.y(), 3, option.rect.height()), QColor("#89b4fa"))
+            painter.fillRect(option.rect, QColor(_themed("#2a2b3d")))
+            painter.fillRect(QRect(option.rect.x(), option.rect.y(), 3, option.rect.height()), QColor(_themed("#89b4fa")))
         elif option.state & QStyle.StateFlag.State_MouseOver:
-            painter.fillRect(option.rect, QColor("#1e1e2e"))
+            painter.fillRect(option.rect, QColor(_themed("#1e1e2e")))
 
         status_type = index.model().data(index, Qt.ItemDataRole.UserRole)
         if status_type is None:
@@ -42,10 +52,10 @@ class StatusPillDelegate(QStyledItemDelegate):
             badge_h = 20
             bx = center_x - badge_w // 2
             by = center_y - badge_h // 2
-            painter.setBrush(QBrush(QColor("#fab387")))
+            painter.setBrush(QBrush(QColor(_themed("#fab387"))))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawRoundedRect(bx, by, badge_w, badge_h, 6, 6)
-            painter.setPen(QPen(QColor("#11111b")))
+            painter.setPen(QPen(QColor(_themed("#11111b"))))
             f = painter.font()
             f.setPointSize(9)
             f.setBold(True)
@@ -54,10 +64,10 @@ class StatusPillDelegate(QStyledItemDelegate):
         elif status_type == "translated":
             # Green circle with checkmark
             radius = 9
-            painter.setBrush(QBrush(QColor("#a6e3a1")))
+            painter.setBrush(QBrush(QColor(_themed("#a6e3a1"))))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawEllipse(center_x - radius, center_y - radius, radius * 2, radius * 2)
-            painter.setPen(QPen(QColor("#11111b")))
+            painter.setPen(QPen(QColor(_themed("#11111b"))))
             f = painter.font()
             f.setPointSize(10)
             f.setBold(True)
@@ -67,7 +77,7 @@ class StatusPillDelegate(QStyledItemDelegate):
             # Pending: Gray outline circle
             radius = 8
             painter.setBrush(Qt.BrushStyle.NoBrush)
-            painter.setPen(QPen(QColor("#585b70"), 1.5))
+            painter.setPen(QPen(QColor(_themed("#585b70")), 1.5))
             painter.drawEllipse(center_x - radius, center_y - radius, radius * 2, radius * 2)
 
         painter.restore()
@@ -100,9 +110,9 @@ class TagIconDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         if option.state & QStyle.StateFlag.State_Selected:
-            painter.fillRect(option.rect, QColor("#2a2b3d"))
+            painter.fillRect(option.rect, QColor(_themed("#2a2b3d")))
         elif option.state & QStyle.StateFlag.State_MouseOver:
-            painter.fillRect(option.rect, QColor("#1e1e2e"))
+            painter.fillRect(option.rect, QColor(_themed("#1e1e2e")))
 
         tag_name = index.model().data(index, Qt.ItemDataRole.DisplayRole) or "General"
         icon_str, bg_color_hex, fg_color_hex, tooltip_text = self.TAG_MAP.get(
@@ -119,13 +129,13 @@ class TagIconDelegate(QStyledItemDelegate):
         bx = center_x - size // 2
         by = center_y - size // 2
 
-        # Draw circle badge
-        painter.setBrush(QBrush(QColor(bg_color_hex)))
+        # Draw circle badge (สีจาก TAG_MAP เป็นรูปแบบ Mocha — แปลงตามธีมตอนวาด)
+        painter.setBrush(QBrush(QColor(_themed(bg_color_hex))))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(bx, by, size, size, size // 2, size // 2)
 
         # Draw icon
-        painter.setPen(QPen(QColor(fg_color_hex)))
+        painter.setPen(QPen(QColor(_themed(fg_color_hex))))
         f = painter.font()
         f.setPointSize(10)
         painter.setFont(f)
@@ -143,9 +153,16 @@ class HtmlDelegate(QStyledItemDelegate):
     def _get_doc(self):
         if self._doc is None:
             self._doc = QTextDocument()
-            self._doc.setDefaultStyleSheet("body { color: #cdd6f4; font-family: inherit; font-size: 13px; }")
+            self._doc.setDefaultStyleSheet(self._body_css())
             self._doc.setDocumentMargin(4)
+        else:
+            # ธีมอาจสลับหลังสร้าง doc — refresh ทุกครั้งที่มีการใช้งานจริง
+            self._doc.setDefaultStyleSheet(self._body_css())
         return self._doc
+
+    @staticmethod
+    def _body_css():
+        return f"body {{ color: {_themed('#cdd6f4')}; font-family: inherit; font-size: 13px; }}"
 
     def paint(self, painter, option, index):
         if getattr(self, '_in_paint', False):

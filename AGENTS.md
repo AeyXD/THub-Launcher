@@ -28,7 +28,9 @@ development/                    ← เครื่องมือ dev: tests/, 
    `_MOCHA_TO_LATTE` ตารางเดียว ซึ่ง remap ทั้ง QSS กลางและ inline styles ทั้งแอปตอนสลับธีม
    (event filter จับ widget ใหม่/สีที่ set ใหม่ให้ด้วย) —
    **ถ้าเพิ่มสี hex ใหม่ใน QSS หรือ inline stylesheet ต้องเพิ่มคู่ใน `_MOCHA_TO_LATTE` ด้วย** ไม่งั้นโหมดสว่างจะมีสีมืดค้าง
-   (ตรวจครอบคลุมได้ด้วยการเดิน widget tree หาสี Mocha ตกค้างตอนโหมด light — ดูวิธีใน boot_test)
+   (ตรวจครอบคลุมได้ด้วยการเดิน widget tree หาสี Mocha ตกค้างตอนโหมด light — ดูวิธีใน boot_test) ·
+   จุดที่ใช้ `QColor(...)`/painter ตรง ๆ (delegate, `setForeground`) stylesheet ไปไม่ถึง — ใช้
+   `themed_color(hex)` จาก `tstudio_app` (หรือ `_themed()` wrapper แบบ lazy ในโมดูลที่ไม่ import tstudio_app)
 3. **โค้ดต้องรันได้ทั้ง macOS และ Windows** — อะไรที่เป็นของ Windows ให้ guard
    (`creationflags=... if os.name == 'nt' else 0` / try-except รอบ `ctypes.windll`) และทดสอบด้วย
    `QT_QPA_PLATFORM=offscreen`
