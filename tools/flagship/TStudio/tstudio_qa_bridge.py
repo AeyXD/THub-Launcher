@@ -13,7 +13,7 @@ import subprocess
 import sys
 
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem,
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem,
     QHeaderView, QAbstractItemView, QMessageBox
 )
 from PyQt6.QtGui import QDesktopServices, QColor
