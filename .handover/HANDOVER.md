@@ -103,7 +103,13 @@ python development/tests/boot_test.py
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
 5. แจ้งบั๊ก/ส่ง PR กลับ upstream (`memolyviza2012-max/THub-Launcher`): บั๊ก PUA ของ Core (c431d7b)
    **ยังมีอยู่ใน upstream 2.2** — เป็น PR candidate ที่ชัดเจนที่สุด
-6. **คืนระบบธีม 3 โหมด** — เขียน Light variant ของ MASTERPIECE_SS (ต้นแบบ: commits e64fc8e/529d8b9)
+6. ~~**คืนระบบธีม 3 โหมด**~~ ✅ **เสร็จ (31/10/2026 · bdd851f)** — เมนู View → ธีม (ตามระบบ/มืด/สว่าง)
+   กลับมาบนฐาน Masterpiece shell: `LIGHT_SS` ถูก generate จาก `MASTERPIECE_SS` ผ่านตาราง remap เดียว
+   `_MOCHA_TO_LATTE` (46 คู่, Mocha→Latte) — ตารางเดียวกัน remap inline stylesheet ที่ upstream
+   2.2 hardcode ไว้ ~128 จุดตอนสลับธีม (event filter `Polish`/`StyleChange` คุม widget ใหม่/สีที่เปลี่ยน
+   ภายหลังด้วย) · dark mode ไม่ถูกแตะแม้แต่ไบต์เดียว · boot_test เพิ่ม section [5] ธีม (รวม 16 จุด ผ่านครบ)
+   + ภาพเทียบ `development/ui-screenshots/masterpiece-{light,dark}.png` (โหมดสว่าง: พิกเซลสว่าง 97% ไม่มีมืดค้าง) ·
+   แถมแก้ `.gitignore`: `tests/` → `/tests/` เพราะเดิมไปครอบ `development/tests/` จน add ไม่ได้
 
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 

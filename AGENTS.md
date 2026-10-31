@@ -21,10 +21,14 @@ development/                    ← เครื่องมือ dev: tests/, 
 ## กฎเหล็ก
 
 1. **ข้อความ UI ทุกอย่างผ่าน `_(key)`** + เพิ่มคีย์ใน `locales/th.json` และ `en.json` พร้อมกัน — ห้าม hardcoded ข้อความใน widget
-2. **สี UI ผ่าน stylesheet กลางเท่านั้น** — ปัจจุบันคือ `MASTERPIECE_SS` (มืดคงที่, มี `DARK_SS = MASTERPIECE_SS` เป็น alias):
+2. **สี UI ผ่าน stylesheet กลางเท่านั้น** — ปัจจุบันคือ `MASTERPIECE_SS` (มืด, มี `DARK_SS = MASTERPIECE_SS` เป็น alias):
    widget ที่ต้องการสีเป็นของตัวเองให้ `setObjectName("ชื่อ")` แล้วเพิ่มกฎใน MASTERPIECE_SS —
-   ห้าม `setStyleSheet` inline ที่มีค่าสี · ⚠️ ระบบธีม 3 โหมด (System/Dark/Light) ของ fork **ถูกพักระหว่าง merge 2.2**
-   รอเขียน Light variant ของ MASTERPIECE_SS (ต้นแบบอยู่ใน commits e64fc8e/529d8b9) — อย่าคืน DARK_SS/LIGHT_SS เดิมแบบเดี๋ยวเอี่ยน
+   ห้าม `setStyleSheet` inline ที่มีค่าสี · **ระบบธีม 3 โหมด (System/Dark/Light) กลับมาใช้งานแล้ว**
+   (เมนู View → ธีม, จำใน config `ui_theme`): `LIGHT_SS` ถูก generate จาก MASTERPIECE_SS ผ่านตาราง
+   `_MOCHA_TO_LATTE` ตารางเดียว ซึ่ง remap ทั้ง QSS กลางและ inline styles ทั้งแอปตอนสลับธีม
+   (event filter จับ widget ใหม่/สีที่ set ใหม่ให้ด้วย) —
+   **ถ้าเพิ่มสี hex ใหม่ใน QSS หรือ inline stylesheet ต้องเพิ่มคู่ใน `_MOCHA_TO_LATTE` ด้วย** ไม่งั้นโหมดสว่างจะมีสีมืดค้าง
+   (ตรวจครอบคลุมได้ด้วยการเดิน widget tree หาสี Mocha ตกค้างตอนโหมด light — ดูวิธีใน boot_test)
 3. **โค้ดต้องรันได้ทั้ง macOS และ Windows** — อะไรที่เป็นของ Windows ให้ guard
    (`creationflags=... if os.name == 'nt' else 0` / try-except รอบ `ctypes.windll`) และทดสอบด้วย
    `QT_QPA_PLATFORM=offscreen`
