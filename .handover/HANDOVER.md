@@ -76,7 +76,8 @@ python development/tests/boot_test.py
   `translation.csv` ที่ upstream คืนมาอีกครั้ง · `load_profiles` ใช้ของ upstream (multi-path — ดีกว่า guard เดิม)
 - ⚠️ **ธีม 3 โหมดถูกพักไว้**: MASTERPIECE_SS เป็นมืดคงที่ การคืนระบบธีมต้องเขียน Light variant
   ของ MASTERPIECE_SS ก่อน (ต้นแบบ + logic อยู่ใน commits e64fc8e/529d8b9)
-- ทดสอบหลัง merge: boot_test **9/9** + เปิด GUI จริงบน macOS ผ่าน · สถานะ: `main [ahead 12]` **ยังไม่ push**
+- ทดสอบหลัง merge: boot_test **9/9** + เปิด GUI จริงบน macOS ผ่าน · สถานะ: push ครบแล้ว (31/10) —
+  main ล่าสุด `93cf7b8` (แก้บั๊ก QHBoxLayout ของ QA dialog + acceptance 4/4 ตาม spec-qa-bridge.md)
 
 ## 7. การตัดสินใจออกแบบที่ควรรู้
 
