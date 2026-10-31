@@ -22,7 +22,7 @@ else:
     CUSTOM_PARSERS_DIR = os.path.join(current_dir, "CustomParsers")
 os.makedirs(CUSTOM_PARSERS_DIR, exist_ok=True)
 
-GITHUB_REPO_URL = "https://raw.githubusercontent.com/memolyviza2012-max/TFormat-Plugins/main/"
+GITHUB_REPO_URL = "https://raw.githubusercontent.com/AeyXD/TFormat-Plugins/main/"
 
 def auto_convert_to_csv(filepath, parent_widget=None):
     ext = os.path.splitext(filepath)[1].lower()

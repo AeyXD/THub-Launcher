@@ -15,7 +15,7 @@ class FetchCloudPluginsThread(QThread):
     finished_signal = pyqtSignal(list, str)
     
     def run(self):
-        url = "https://api.github.com/repos/memolyviza2012-max/TFormat-Plugins/contents/"
+        url = "https://api.github.com/repos/AeyXD/TFormat-Plugins/contents/"
         try:
             res = requests.get(url, timeout=10)
             if res.status_code == 200:
