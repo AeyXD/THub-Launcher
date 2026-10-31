@@ -235,3 +235,6 @@ Releases/
 *.exe
 *.zip
 *.pak
+
+# macOS Finder
+.DS_Store
