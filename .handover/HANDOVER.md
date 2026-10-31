@@ -101,8 +101,11 @@ python development/tests/boot_test.py
 
 3. ทดสอบ AI แปลจริงบน macOS (ต้องใส่ API key ก่อน — โค้ดพร้อมแล้ว)
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
-5. แจ้งบั๊ก/ส่ง PR กลับ upstream (`memolyviza2012-max/THub-Launcher`): บั๊ก PUA ของ Core (c431d7b)
-   **ยังมีอยู่ใน upstream 2.2** — เป็น PR candidate ที่ชัดเจนที่สุด
+5. ~~แจ้งบั๊ก/ส่ง PR กลับ upstream~~ ✅ **ส่งแล้ว (31/10/2026 · [upstream PR #2](https://github.com/memolyviza2012-max/THub-Launcher/pull/2))**
+   บั๊ก PUA ของ Core (c431d7b) — branch `fix/pua-mapping-format` (9bbfad3) แตกจาก upstream/main
+   ตรง ๆ เอาเฉพาะ `tpua_engine.py` (ส่วน `load_profiles` ไม่ขอไปเพราะ upstream 2.2 เขียนใหม่เป็น
+   multi-path แล้ว) · ทดสอบ reproduce กับโค้ด+mapping ของ upstream จริงก่อนส่ง (round-trip 1,978/1,978)
+   · PR เป็นภาษาไทย — **รอ maintainer review**
 6. ~~**คืนระบบธีม 3 โหมด**~~ ✅ **เสร็จ (31/10/2026 · bdd851f)** — เมนู View → ธีม (ตามระบบ/มืด/สว่าง)
    กลับมาบนฐาน Masterpiece shell: `LIGHT_SS` ถูก generate จาก `MASTERPIECE_SS` ผ่านตาราง remap เดียว
    `_MOCHA_TO_LATTE` (46 คู่, Mocha→Latte) — ตารางเดียวกัน remap inline stylesheet ที่ upstream
