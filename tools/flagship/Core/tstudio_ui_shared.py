@@ -17,7 +17,7 @@ import re
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, 
     QTableWidgetItem, QHeaderView, QMessageBox, QLabel, QComboBox, 
-    QLineEdit, QFileDialog, QDialog, QScrollArea, QButtonGroup, QRadioButton,
+    QLineEdit, QFileDialog, QDialog, QScrollArea, QButtonGroup, QRadioButton, QCheckBox,
     QFormLayout, QTextEdit, QGroupBox, QSpinBox, QDoubleSpinBox, QApplication,
     QAbstractItemView, QTabWidget
 )
@@ -457,6 +457,21 @@ class SettingsDialog(QDialog):
         )
         self.spn_concurrency.setStyleSheet("background: #181825; border: 1px solid #313244; border-radius: 6px; padding: 4px 8px; color: #cdd6f4;")
         form_layout.addRow("7. ⚡ Batch Concurrency (เธรดแปลพร้อมกัน):", self.spn_concurrency)
+
+        # ── QA Checker (สะพานเชื่อม game-localization-qa) ──
+        self.txt_qa_checker = QLineEdit()
+        self.txt_qa_checker.setPlaceholderText(_("qa_settings_checker_ph"))
+        btn_qa_browse = QPushButton("…")
+        btn_qa_browse.setFixedWidth(34)
+        btn_qa_browse.clicked.connect(self._browse_qa_checker)
+        qa_row = QHBoxLayout()
+        qa_row.setContentsMargins(0, 0, 0, 0)
+        qa_row.addWidget(self.txt_qa_checker, 1)
+        qa_row.addWidget(btn_qa_browse)
+        form_layout.addRow(_("qa_settings_checker"), qa_row)
+
+        self.chk_qa_gate = QCheckBox(_("qa_settings_gate"))
+        form_layout.addRow("", self.chk_qa_gate)
 
         tab_active_layout.addLayout(form_layout)
 
@@ -926,6 +941,8 @@ class SettingsDialog(QDialog):
             self.spn_max_tokens.setValue(int(data.get("max_tokens", 4096)))
             self.spn_timeout.setValue(int(data.get("timeout", 30)))
             self.spn_concurrency.setValue(int(data.get("batch_concurrency", 10)))
+            self.txt_qa_checker.setText(data.get("qa_checker_path", ""))
+            self.chk_qa_gate.setChecked(bool(data.get("qa_gate_before_deploy", False)))
 
             self._update_active_tab_notice()
         except Exception as e:
@@ -956,10 +973,17 @@ class SettingsDialog(QDialog):
         data["max_tokens"] = self.spn_max_tokens.value()
         data["timeout"] = self.spn_timeout.value()
         data["batch_concurrency"] = self.spn_concurrency.value()
+        data["qa_checker_path"] = self.txt_qa_checker.text().strip()
+        data["qa_gate_before_deploy"] = self.chk_qa_gate.isChecked()
 
         TStudioCore.save_config(data)
         QMessageBox.information(self, "บันทึกสำเร็จ", "บันทึกการตั้งค่า AI Models และ Multi-API Keys เรียบร้อยแล้ว!")
         super().accept()
+
+    def _browse_qa_checker(self):
+        path, _ = QFileDialog.getOpenFileName(self, _("qa_settings_checker"), "", "Python (*.py);;All Files (*.*)")
+        if path:
+            self.txt_qa_checker.setText(path)
 
     def accept(self):
         self.save_config()

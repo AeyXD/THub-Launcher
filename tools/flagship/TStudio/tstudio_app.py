@@ -81,6 +81,7 @@ from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyM
 from PyQt6.QtGui import QColor, QKeySequence, QShortcut, QIcon, QPixmap, QAction, QPainter, QBrush, QPen, QFont
 from flow_layout import FlowLayout
 from tstudio_dashboard import WelcomeScreen, DashboardPanel
+from tstudio_qa_bridge import find_checker, run_checker, QaResultDialog
 
 # ╔══════════════════════════════════════════════════════════════════╗
 # ║           PROJECT CONFIGURATION — GOTG SPECIFIC                 ║
@@ -3564,6 +3565,13 @@ class TranslationStudio(QMainWindow):
         act_plugins.setToolTip(_("plugin_menu_tooltip"))
         act_plugins.triggered.connect(self.open_plugin_manager)
         tools_menu.addAction(act_plugins)
+
+        # ── QA bridge (game-localization-qa) ──
+        self.act_qa = QAction(_("qa_menu_action"), self)
+        self.act_qa.setToolTip(_("qa_menu_tooltip"))
+        self.act_qa.triggered.connect(self.run_qa_check)
+        tools_menu.addAction(self.act_qa)
+        tools_menu.aboutToShow.connect(self._refresh_qa_menu_state)
         
         tools_menu.addSeparator()
         
@@ -5111,6 +5119,50 @@ class TranslationStudio(QMainWindow):
         """กลับสู่หน้าแรก (Ctrl+Shift+H)"""
         if hasattr(self, 'workspace_stack'):
             self.workspace_stack.setCurrentIndex(0)
+
+    def _refresh_qa_menu_state(self):
+        """เปิด/ปิดเมนู QA ตาม qa_checker_path ใน config (graceful — หาไม่เจอก็แค่ disabled)"""
+        try:
+            from tstudio_core import TStudioCore
+            enabled = find_checker(TStudioCore.load_config()) is not None
+            if hasattr(self, 'act_qa'):
+                self.act_qa.setEnabled(enabled)
+                self.act_qa.setToolTip(_("qa_menu_tooltip") if enabled else _("qa_menu_disabled_tooltip"))
+        except Exception:
+            pass
+
+    def run_qa_check(self, fix=False):
+        """ตรวจ QA คำแปลด้วย thai_qa.py (repo game-localization-qa) — dry-run หรือ auto-fix"""
+        from tstudio_core import TStudioCore
+        cfg = TStudioCore.load_config()
+        checker = find_checker(cfg)
+        if not checker:
+            QMessageBox.information(self, _("qa_title"), _("qa_need_checker"))
+            return
+        if not getattr(self, 'csv_path', '') or not os.path.exists(self.csv_path):
+            QMessageBox.warning(self, _("qa_title"), _("qa_no_file"))
+            return
+        try:
+            self.silent_save_csv()
+        except Exception:
+            pass
+        report_path = os.path.join(os.path.dirname(os.path.abspath(self.csv_path)), "qa_audit.csv")
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        ok, rows, summary = run_checker(checker, self.csv_path, report_path, fix=fix)
+        QApplication.restoreOverrideCursor()
+        if not ok:
+            QMessageBox.critical(self, _("qa_title"), _("qa_run_error", msg=summary))
+            return
+        if fix:
+            self.model.load_csv(self.csv_path, self.csv_encoding, COL_ID, COL_SOURCE, COL_TRANS, COL_AI_REF)
+            self.update_progress_stats()
+            if hasattr(self, 'dashboard_panel'):
+                self.dashboard_panel.refresh()
+            QMessageBox.information(self, _("qa_title"), f"{_('qa_fix_done')}\n\n{summary}")
+            return
+        dlg = QaResultDialog(rows, summary, report_path, self)
+        dlg.fix_requested.connect(lambda: self.run_qa_check(fix=True))
+        dlg.exec()
 
     def open_merge_dialog(self):
         dlg = MergeTranslatedDialog(self)
@@ -7234,6 +7286,27 @@ class TranslationStudio(QMainWindow):
         try:
             from tstudio_core import TStudioCore
             cfg = TStudioCore.load_config()
+
+            # ── QA gate ก่อน deploy (ถ้าเปิดใน Settings และมีตัวตรวจ) ──
+            if cfg.get("qa_gate_before_deploy") and getattr(self, 'csv_path', ''):
+                checker = find_checker(cfg)
+                if checker and os.path.exists(self.csv_path):
+                    try:
+                        self.silent_save_csv()
+                        gate_report = os.path.join(os.path.dirname(os.path.abspath(self.csv_path)), "qa_audit.csv")
+                        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+                        gate_ok, gate_rows, _gs = run_checker(checker, self.csv_path, gate_report, fix=False)
+                        QApplication.restoreOverrideCursor()
+                        n_err = sum(1 for r in gate_rows if (r.get("Severity") or "").strip().lower() == "error")
+                        if gate_ok and n_err:
+                            reply = QMessageBox.question(
+                                self, _("qa_gate_title"), _("qa_gate_confirm", n=n_err),
+                                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                            if reply != QMessageBox.StandardButton.Yes:
+                                return
+                    except Exception as e:
+                        print(f"QA gate error: {e}")
+
             origin_file = cfg.get("origin_file", "")
             
             # ── JSON MESG Deploy logic ──
