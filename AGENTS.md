@@ -41,7 +41,12 @@ development/                    ← เครื่องมือ dev: tests/, 
    — เป็นซากการพัฒนา ไม่ได้ถูกเรียกใช้
 7. **Parser plugin contract** — ทุก parser (รวมถึงที่ AI สร้าง) ต้องมี
    `convert_to_csv(filepath, parent_widget=None)` คืน absolute path ของ CSV
-   (`ID, Source, Translation, AI_Reference`, utf-8-sig) — ใช้ `ID` แบบ `namespace::key::hash` เพื่อ deploy กลับได้
+   (`ID, Source, Translation, AI_Reference`, utf-8-sig) — ใช้ `ID` แบบ `namespace::key::hash` เพื่อ deploy กลับได้ ·
+   **Game Tools แยกช่องทาง** (spec `../docs/spec-game-tools.md`): unpacker/packer รายเกมอยู่ที่
+   `CustomParsers/GameTools/<Game>/tool.json` — ใช้ผ่าน subprocess CLI ตาม manifest เท่านั้น
+   (เมนู Tools → แตกไฟล์เกม / Pack กลับ) **ห้าม**เสียบเข้า auto-import ของ file_converter ·
+   `tools/flagship/Plugins/` เป็นของ **inert** ของ upstream (ไม่มีโค้ดเรียกใช้) — ห้ามเพิ่มเกมใหม่ที่นี่
+   ให้เพิ่มที่ TFormat-Plugins (`Game_Extractors/`) แทน
 8. **ทดสอบก่อนส่งมอบ** — อย่างน้อย `python development/tests/boot_test.py` ต้องผ่านทั้งหมด
 
 ## คำสั่งที่ใช้บ่อย

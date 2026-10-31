@@ -222,6 +222,7 @@ __marimo__/
 hub_config.json
 hub_config.local.json
 tools/flagship/Core/config.json
+tools/flagship/TStudio/CustomParsers/GameTools/
 tools/flagship/config_dump.json
 tools/Standalone/TSub/tsub_config.json
 tools/flagship/TStudio/translation.glossary.json

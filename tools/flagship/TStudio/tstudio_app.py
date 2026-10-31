@@ -77,7 +77,7 @@ from PyQt6.QtWidgets import (
     QFileDialog, QMenu, QSpinBox, QProgressBar, QDockWidget, QMenuBar, QSizePolicy, QToolButton, QCheckBox,
     QStackedWidget, QFrame, QStyledItemDelegate, QStyle, QGraphicsDropShadowEffect, QTabWidget
 )
-from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QTimer, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher, QRect, QRectF, QPoint, QSize, QEvent
+from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QTimer, QRunnable, QThreadPool, QThread, pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher, QRect, QRectF, QPoint, QSize, QEvent
 from PyQt6.QtGui import QColor, QKeySequence, QShortcut, QIcon, QPixmap, QAction, QActionGroup, QPainter, QBrush, QPen, QFont
 from flow_layout import FlowLayout
 from tstudio_dashboard import WelcomeScreen, DashboardPanel
@@ -3772,6 +3772,17 @@ class TranslationStudio(QMainWindow):
         act_analyzer.setShortcut("Ctrl+Shift+A")
         act_analyzer.triggered.connect(self.open_file_analyzer)
         tools_menu.addAction(act_analyzer)
+
+        # Game Tools (spec-game-tools.md Phase C) — unpacker/packer รายเกมจาก Plugin Manager
+        act_gt_extract = QAction(_("gt_menu_extract"), self)
+        act_gt_extract.setToolTip(_("gt_menu_extract_tooltip"))
+        act_gt_extract.triggered.connect(self.open_game_tool_extract)
+        tools_menu.addAction(act_gt_extract)
+
+        act_gt_pack = QAction(_("gt_menu_pack"), self)
+        act_gt_pack.setToolTip(_("gt_menu_pack_tooltip"))
+        act_gt_pack.triggered.connect(lambda: self.pack_back_to_game())
+        tools_menu.addAction(act_gt_pack)
         
         # --- View Menu ---
         view_menu = menubar.addMenu(_("menu_view"))
@@ -5383,6 +5394,158 @@ class TranslationStudio(QMainWindow):
         dlg = QaResultDialog(rows, summary, report_path, self, autofix_count=autofix)
         dlg.fix_requested.connect(lambda: self.run_qa_check(fix=True))
         dlg.exec()
+
+    # ─────────── Game Tools (spec-game-tools.md Phase C) ───────────
+
+    def _run_game_tool_with_progress(self, fn, title):
+        """รัน unpack/pack ใน QThread พร้อม QProgressDialog (busy) — UI ไม่ค้าง"""
+        from PyQt6.QtWidgets import QProgressDialog
+        from PyQt6.QtCore import QEventLoop
+
+        class _Runner(QThread):
+            done = pyqtSignal(bool, str)
+            def __init__(self, task):
+                super().__init__()
+                self.task = task
+            def run(self):
+                try:
+                    ok, out = self.task()
+                except Exception as e:
+                    ok, out = False, str(e)
+                self.done.emit(ok, out)
+
+        loop = QEventLoop()
+        result = {}
+
+        runner = _Runner(fn)
+        runner.done.connect(lambda ok, out: (result.update(ok=ok, out=out), loop.quit())[1])
+
+        prog = QProgressDialog(title, "", 0, 0, self)
+        prog.setCancelButton(None)
+        prog.setWindowModality(Qt.WindowModality.WindowModal)
+        prog.setMinimumDuration(300)
+        runner.start()
+        loop.exec()
+        prog.cancel()
+        prog.close()
+        return result.get("ok", False), result.get("out", "")
+
+    def open_game_tool_extract(self):
+        """เมนู Tools → แตกไฟล์เกม: เลือก Game Tool ที่ติดตั้ง → unpack → CSV เปิดใน TStudio"""
+        from PyQt6.QtWidgets import QInputDialog
+        import tstudio_game_tools as gt
+        from tstudio_core import TStudioCore
+
+        tools = gt.installed_tools()
+        if not tools:
+            QMessageBox.information(self, _("gt_no_tools_title"), _("gt_no_tools_msg"))
+            return
+
+        games = sorted(tools.keys())
+        labels = [f"{tools[g].get('display', g)}" for g in games]
+        label, ok = QInputDialog.getItem(self, _("gt_menu_extract"), _("gt_pick_game"), labels, 0, False)
+        if not ok:
+            return
+        manifest = tools[games[labels.index(label)]]
+
+        exts = manifest.get("file_extensions", []) or []
+        flt = _("gt_file_filter", exts=" ".join("*" + e for e in exts)) + ";;" + _("gt_all_files")
+        path, _sel = QFileDialog.getOpenFileName(self, _("gt_pick_file"), "", flt)
+        if not path:
+            return
+
+        csv_out = gt.default_extract_csv_path(path)
+        ok, out = self._run_game_tool_with_progress(
+            lambda: gt.unpack(manifest, path, csv_out), _("gt_extracting"))
+        if not ok:
+            QMessageBox.critical(self, _("error_title"), _("gt_extract_fail", msg=out[:500]))
+            return
+
+        # จำไฟล์เกมต้นทางไว้เป็น origin_file เพื่อใช้ Pack กลับใน deploy flow
+        try:
+            cfg = TStudioCore.load_config()
+            cfg["origin_file"] = path
+            TStudioCore.save_config(cfg)
+        except Exception as e:
+            print(f"GameTools: บันทึก origin_file ไม่ได้ — {e}")
+
+        self.csv_path = csv_out
+        self._load_csv()
+        self.statusBar().showMessage(_("gt_extract_ok_status", csv=os.path.basename(csv_out)), 5000)
+        QMessageBox.information(self, _("success_title"), _("gt_extract_ok", csv=os.path.basename(csv_out), n=len(self.model._data) if self.model else 0))
+
+    def pack_back_to_game(self, manifest=None):
+        """Pack CSV ปัจจุบันกลับเป็นไฟล์เกมด้วย Game Tool (เลือกปลายทาง + ยืนยันก่อนเขียน)"""
+        from PyQt6.QtWidgets import QInputDialog
+        import tstudio_game_tools as gt
+        from tstudio_core import TStudioCore
+
+        if not getattr(self, 'csv_path', '') or not os.path.exists(self.csv_path):
+            QMessageBox.warning(self, _("error_title"), _("no_file_loaded"))
+            return
+
+        tools = gt.installed_tools()
+        if not tools:
+            QMessageBox.information(self, _("gt_no_tools_title"), _("gt_no_tools_msg"))
+            return
+
+        origin = ""
+        try:
+            origin = TStudioCore.load_config().get("origin_file", "")
+        except Exception:
+            pass
+
+        if manifest is None:
+            manifest = gt.tool_for_file(origin) if origin else None
+        if manifest is None:
+            packable = {g: m for g, m in sorted(tools.items()) if m.get("pack_cmd")}
+            if not packable:
+                QMessageBox.information(self, _("gt_no_tools_title"), _("gt_pack_none_available"))
+                return
+            games = list(packable.keys())
+            labels = [packable[g].get("display", g) for g in games]
+            label, ok = QInputDialog.getItem(self, _("gt_menu_pack"), _("gt_pick_game"), labels, 0, False)
+            if not ok:
+                return
+            manifest = packable[games[labels.index(label)]]
+
+        if not manifest.get("pack_cmd"):
+            QMessageBox.information(self, _("gt_pack_title"), _("gt_pack_unavailable", game=manifest.get("display", manifest.get("game"))))
+            return
+
+        original = origin if (origin and gt.tool_for_file(origin) is manifest) else ""
+        if not original:
+            exts = manifest.get("file_extensions", []) or []
+            flt = _("gt_file_filter", exts=" ".join("*" + e for e in exts)) + ";;" + _("gt_all_files")
+            original, _sel = QFileDialog.getOpenFileName(self, _("gt_pack_pick_original"), "", flt)
+            if not original:
+                return
+
+        stem, ext = os.path.splitext(original)
+        default_out = f"{stem}_TH{ext}"
+        output, _sel = QFileDialog.getSaveFileName(self, _("gt_pack_pick_output"), default_out)
+        if not output:
+            return
+
+        reply = QMessageBox.question(
+            self, _("gt_pack_title"),
+            _("gt_pack_confirm", csv=os.path.basename(self.csv_path), out=os.path.basename(output)),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        try:
+            self.silent_save_csv()
+        except Exception:
+            pass
+
+        ok, out = self._run_game_tool_with_progress(
+            lambda: gt.pack(manifest, original, self.csv_path, output), _("gt_packing"))
+        if not ok:
+            QMessageBox.critical(self, _("error_title"), _("gt_pack_fail", msg=out[:500]))
+            return
+        self.statusBar().showMessage(_("gt_pack_ok_status", out=os.path.basename(output)), 5000)
+        QMessageBox.information(self, _("success_title"), _("gt_pack_ok", out=os.path.basename(output)))
 
     def open_merge_dialog(self):
         dlg = MergeTranslatedDialog(self)
@@ -7528,6 +7691,35 @@ class TranslationStudio(QMainWindow):
                         print(f"QA gate error: {e}")
 
             origin_file = cfg.get("origin_file", "")
+
+            # ── Game Tool pack-back (spec-game-tools.md Phase C2) ──
+            # origin_file ตรงเกมที่มี Game Tool ติดตั้งและ pack_cmd ≠ null → เสนอ Pack กลับ
+            # คู่กับ fallback CSV export เดิม (เลือกได้ ไม่แทนที่กัน)
+            _gt_manifest = None
+            if origin_file:
+                try:
+                    import tstudio_game_tools as _gt
+                    _gt_manifest = _gt.tool_for_file(origin_file)
+                except Exception:
+                    _gt_manifest = None
+            if _gt_manifest and _gt_manifest.get("pack_cmd"):
+                _box = QMessageBox(self)
+                _box.setWindowTitle(_("gt_pack_title"))
+                _box.setIcon(QMessageBox.Icon.Question)
+                _box.setText(_("gt_deploy_choice",
+                               display=_gt_manifest.get("display", _gt_manifest.get("game")),
+                               origin=os.path.basename(origin_file)))
+                _btn_pack = _box.addButton(_("gt_deploy_pack"), QMessageBox.ButtonRole.YesRole)
+                _btn_csv = _box.addButton(_("gt_deploy_csv"), QMessageBox.ButtonRole.NoRole)
+                _box.addButton(QMessageBox.StandardButton.Cancel)
+                _box.exec()
+                if _box.clickedButton() is _btn_pack:
+                    self.pack_back_to_game(manifest=_gt_manifest)
+                    return
+                if _box.clickedButton() is None:
+                    return  # ปิดหน้าต่าง = ยกเลิก
+                # เลือก CSV → ไปต่อที่ flow เดิมด้านล่าง
+
             
             # ── JSON MESG Deploy logic ──
             if origin_file and origin_file.lower().endswith('.json'):

@@ -4,16 +4,17 @@ import time
 import shutil
 import requests
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QTabWidget, QWidget, 
+    QDialog, QVBoxLayout, QHBoxLayout, QTabWidget, QWidget,
     QListWidget, QPushButton, QLabel, QMessageBox, QFileDialog, QListWidgetItem
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from tstudio_i18n import _
 import file_converter
+import tstudio_game_tools as gt
 
 class FetchCloudPluginsThread(QThread):
     finished_signal = pyqtSignal(list, str)
-    
+
     def run(self):
         url = "https://api.github.com/repos/AeyXD/TFormat-Plugins/contents/"
         try:
@@ -26,6 +27,56 @@ class FetchCloudPluginsThread(QThread):
                 self.finished_signal.emit([], f"GitHub API Error: {res.status_code}")
         except Exception as e:
             self.finished_signal.emit([], f"Network Error: {str(e)}")
+
+class FetchGameToolsThread(QThread):
+    """ดึงรายชื่อเกมจาก Game_Extractors/ ของ TFormat-Plugins (โฟลเดอร์ = 1 เกม)"""
+    finished_signal = pyqtSignal(list, str)
+
+    def run(self):
+        try:
+            res = requests.get(gt.GAMETOOLS_API_BASE, timeout=10)
+            if res.status_code == 200:
+                games = [i for i in res.json() if i.get("type") == "dir"]
+                self.finished_signal.emit(games, "")
+            else:
+                self.finished_signal.emit([], f"GitHub API Error: {res.status_code}")
+        except Exception as e:
+            self.finished_signal.emit([], f"Network Error: {str(e)}")
+
+class InstallGameToolThread(QThread):
+    """ติดตั้ง/อัปเดต Game Tool หนึ่งเกม: tool.json + สคริปต์ .py ทั้งหมด
+    ลง CustomParsers/GameTools/<Game>/ (เคลียร์โฟลเดอร์เก่าก่อนเขียนใหม่กันสคริปต์ตายค้าง)"""
+    finished_signal = pyqtSignal(bool, str)
+
+    def __init__(self, game_name):
+        super().__init__()
+        self.game_name = game_name
+
+    def run(self):
+        try:
+            res = requests.get(f"{gt.GAMETOOLS_API_BASE}/{self.game_name}", timeout=15)
+            if res.status_code != 200:
+                self.finished_signal.emit(False, f"GitHub API Error: {res.status_code}")
+                return
+            files = [i for i in res.json()
+                     if i.get("type") == "file" and (i.get("name") == "tool.json" or i.get("name", "").endswith(".py"))]
+            if not any(i.get("name") == "tool.json" for i in files):
+                self.finished_signal.emit(False, "tool.json not found in " + self.game_name)
+                return
+            dest = os.path.join(gt.GAMETOOLS_DIR, self.game_name)
+            if os.path.isdir(dest):
+                shutil.rmtree(dest)
+            os.makedirs(dest, exist_ok=True)
+            for item in files:
+                dl = requests.get(item.get("download_url", ""), timeout=15)
+                if dl.status_code != 200:
+                    self.finished_signal.emit(False, f"Download failed: {item.get('name')}")
+                    return
+                with open(os.path.join(dest, item["name"]), "wb") as f:
+                    f.write(dl.content)
+            self.finished_signal.emit(True, "")
+        except Exception as e:
+            self.finished_signal.emit(False, str(e))
 
 class DownloadPluginThread(QThread):
     finished_signal = pyqtSignal(bool, str)
@@ -63,6 +114,7 @@ class PluginManagerDialog(QDialog):
         
         self.init_installed_tab()
         self.init_cloud_tab()
+        self.init_game_tools_tab()
         
     def init_installed_tab(self):
         tab = QWidget()
@@ -115,10 +167,18 @@ class PluginManagerDialog(QDialog):
     def refresh_installed_list(self):
         self.installed_list.clear()
         if not os.path.exists(self.parsers_dir):
-            return
-        for file in os.listdir(self.parsers_dir):
-            if file.endswith("_parser.py"):
-                self.installed_list.addItem(file)
+            pass
+        else:
+            for file in os.listdir(self.parsers_dir):
+                if file.endswith("_parser.py"):
+                    item = QListWidgetItem(file)
+                    item.setData(Qt.ItemDataRole.UserRole, ("parser", file))
+                    self.installed_list.addItem(item)
+        # Game Tools ที่ติดตั้งไว้ในเครื่อง (CustomParsers/GameTools/<Game>/)
+        for game, manifest in gt.installed_tools().items():
+            item = QListWidgetItem(_("gt_installed_entry", game=game, display=manifest.get("display", game)))
+            item.setData(Qt.ItemDataRole.UserRole, ("gametool", game))
+            self.installed_list.addItem(item)
                 
     def add_local_plugin(self):
         file_path, file_ext = QFileDialog.getOpenFileName(self, _("plugin_select_file_title"), "", _("plugin_python_files_filter"))
@@ -141,11 +201,24 @@ class PluginManagerDialog(QDialog):
         if not item:
             QMessageBox.warning(self, _("Warning"), _("plugin_warn_select_delete"))
             return
-            
-        filename = item.text()
+
+        kind, name = item.data(Qt.ItemDataRole.UserRole) or ("parser", item.text())
+        if kind == "gametool":
+            reply = QMessageBox.question(self, _("plugin_confirm_delete_title"),
+                                         _("gt_confirm_delete", game=name),
+                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if reply == QMessageBox.StandardButton.Yes:
+                try:
+                    shutil.rmtree(os.path.join(gt.GAMETOOLS_DIR, name))
+                    self.refresh_installed_list()
+                except Exception as e:
+                    QMessageBox.critical(self, _("error_title"), _("plugin_err_delete", msg=str(e)))
+            return
+
+        filename = name
         reply = QMessageBox.question(self, _("plugin_confirm_delete_title"), _("plugin_confirm_delete", filename=filename),
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-                                     
+
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 os.remove(os.path.join(self.parsers_dir, filename))
@@ -246,3 +319,124 @@ class PluginManagerDialog(QDialog):
         
     def _on_single_queue_downloaded(self, success, msg):
         self._process_next_download()
+
+    # ─────────────────── Game Tools (spec-game-tools.md Phase B) ───────────────────
+
+    def init_game_tools_tab(self):
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+
+        hint = QLabel(_("gt_tab_hint"))
+        hint.setWordWrap(True)
+        hint.setStyleSheet("color: #a6adc8; font-size: 11px; background: transparent;")
+        layout.addWidget(hint)
+
+        self.gametools_list = QListWidget()
+        self.gametools_list.setStyleSheet("QListWidget { background-color: #1e2a24; }")
+        layout.addWidget(self.gametools_list)
+
+        btn_layout = QHBoxLayout()
+        self.btn_gt_refresh = QPushButton(_("plugin_btn_refresh"))
+        self.btn_gt_refresh.clicked.connect(self.fetch_game_tools)
+
+        self.btn_gt_install = QPushButton(_("gt_btn_install_update"))
+        self.btn_gt_install.clicked.connect(self.install_game_tool)
+
+        self.btn_gt_install_all = QPushButton(_("gt_btn_install_all"))
+        self.btn_gt_install_all.clicked.connect(self.install_all_game_tools)
+
+        btn_layout.addWidget(self.btn_gt_refresh)
+        btn_layout.addWidget(self.btn_gt_install)
+        btn_layout.addWidget(self.btn_gt_install_all)
+        layout.addLayout(btn_layout)
+
+        self.tabs.addTab(tab, _("plugin_tab_gametools"))
+        self.fetch_game_tools()
+
+    def fetch_game_tools(self):
+        self.gametools_list.clear()
+        self.gametools_list.addItem(_("plugin_status_loading_cloud"))
+        for b in (self.btn_gt_refresh, self.btn_gt_install, self.btn_gt_install_all):
+            b.setEnabled(False)
+
+        self.gt_fetch_thread = FetchGameToolsThread()
+        self.gt_fetch_thread.finished_signal.connect(self.on_game_tools_fetched)
+        self.gt_fetch_thread.start()
+
+    def on_game_tools_fetched(self, games, error_msg):
+        self.gametools_list.clear()
+        for b in (self.btn_gt_refresh, self.btn_gt_install, self.btn_gt_install_all):
+            b.setEnabled(True)
+
+        if error_msg:
+            self.gametools_list.addItem(_("gt_fetch_error", msg=error_msg))
+            return
+        if not games:
+            self.gametools_list.addItem(_("plugin_status_no_cloud"))
+            return
+
+        installed = gt.installed_tools()
+        for g in games:
+            name = g.get("name", "?")
+            item = QListWidgetItem(_("gt_list_entry",
+                                     game=name,
+                                     status=_("gt_status_installed") if name in installed else _("gt_status_not_installed")))
+            item.setData(Qt.ItemDataRole.UserRole, name)
+            self.gametools_list.addItem(item)
+
+    def install_game_tool(self):
+        item = self.gametools_list.currentItem()
+        if not item or not item.data(Qt.ItemDataRole.UserRole):
+            QMessageBox.warning(self, _("Warning"), _("gt_warn_select"))
+            return
+        game = item.data(Qt.ItemDataRole.UserRole)
+        self._start_game_tool_install(game)
+
+    def _start_game_tool_install(self, game):
+        self.btn_gt_install.setEnabled(False)
+        self.btn_gt_install_all.setEnabled(False)
+        self.btn_gt_install.setText(_("gt_status_installing", game=game))
+
+        self.gt_install_thread = InstallGameToolThread(game)
+        self.gt_install_thread.finished_signal.connect(
+            lambda ok, msg: self.on_game_tool_installed(ok, msg, game))
+        self.gt_install_thread.start()
+
+    def on_game_tool_installed(self, ok, msg, game):
+        self.btn_gt_install.setEnabled(True)
+        self.btn_gt_install_all.setEnabled(True)
+        self.btn_gt_install.setText(_("gt_btn_install_update"))
+        if ok:
+            self.refresh_installed_list()
+            self.fetch_game_tools()
+            QMessageBox.information(self, _("success_title"), _("gt_success_installed", game=game))
+        else:
+            QMessageBox.critical(self, _("error_title"), _("plugin_err_download", msg=msg))
+
+    def install_all_game_tools(self):
+        self.gt_queue = []
+        for i in range(self.gametools_list.count()):
+            item = self.gametools_list.item(i)
+            name = item.data(Qt.ItemDataRole.UserRole)
+            if name:
+                self.gt_queue.append(name)
+        if not self.gt_queue:
+            return
+        self.btn_gt_refresh.setEnabled(False)
+        self._install_next_game_tool()
+
+    def _install_next_game_tool(self):
+        if not getattr(self, "gt_queue", None):
+            self.btn_gt_refresh.setEnabled(True)
+            self.btn_gt_install_all.setEnabled(True)
+            self.btn_gt_install_all.setText(_("gt_btn_install_all"))
+            self.refresh_installed_list()
+            QMessageBox.information(self, _("success_title"), _("gt_all_done"))
+            self.fetch_game_tools()
+            return
+
+        game = self.gt_queue.pop(0)
+        self.btn_gt_install_all.setText(_("gt_status_installing", game=game))
+        self.gt_install_thread = InstallGameToolThread(game)
+        self.gt_install_thread.finished_signal.connect(lambda ok, msg: self._install_next_game_tool())
+        self.gt_install_thread.start()
