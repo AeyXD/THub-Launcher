@@ -104,7 +104,14 @@ python development/tests/boot_test.py
    GLQA CI 64/64 · ตามมาแก้บั๊กแฝง: QHBoxLayout ขาดหายทำให้ dialog ผล QA เปิดไม่ได้ (93cf7b8) และพาสี
    painter/QColor 36 จุดเข้าระบบธีมผ่าน `themed_color()` (b6a8ea0)
 
-3. ทดสอบ AI แปลจริงบน macOS (ต้องใส่ API key ก่อน — โค้ดพร้อมแล้ว)
+3. ~~ทดสอบ AI แปลจริงบน macOS~~ ✅ **เสร็จ (1/11/2026)** — ผ่าน **Z.ai (GLM)** ที่เพิ่งเพิ่มเป็น provider
+   first-class (503eafc · key เก็บใน config `zai_key`) · โมเดล **glm-5.3** (บัญชีเข้าถึง 11 โมเดล รวม
+   glm-5.3-flash/flashx สำหรับงานแปลจำนวนมากที่ต้องการถูก/เร็ว) · ทดสอบ offscreen ผ่าน engine จริง
+   ของแอปทั้ง 2 เส้นทาง: `retranslate_single` ("Weaver said: meet me at the salvage yard" →
+   "วีฟเวอร์บอกว่า: มาพบกับฉันที่ลานขูดและตัด" · 52 วิ) และ `retranslate_batch` ("Press {0} to interact" →
+   "กด {0} เพื่อโต้ตอบ" · 4.6 วิ · รักษา placeholder ครบ) · auto-save เขียนลง CSV จริง · dashboard
+   80% (4/5) ถูกต้อง — แถวที่เหลือเป็น source ภาษาไทย (fixture) ไม่เข้าเกณฑ์ EN→TH · ระหว่างทางปิด
+   code smell `_infer_provider` นิยามซ้ำใน SettingsDialog ด้วย (eaf821f)
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
 5. ~~แจ้งบั๊ก/ส่ง PR กลับ upstream~~ ✅ **ส่งแล้ว (31/10/2026 · [upstream PR #2](https://github.com/memolyviza2012-max/THub-Launcher/pull/2))**
    บั๊ก PUA ของ Core (c431d7b) — branch `fix/pua-mapping-format` (9bbfad3) แตกจาก upstream/main
