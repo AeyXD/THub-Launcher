@@ -32,7 +32,7 @@ from PyQt6.QtWidgets import (
     QFileDialog, QMenu, QSpinBox, QProgressBar, QDockWidget, QMenuBar, QSizePolicy, QToolButton, QCheckBox
 )
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QTimer, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QObject
-from PyQt6.QtGui import QColor, QKeySequence, QShortcut, QIcon, QPixmap, QAction
+from PyQt6.QtGui import QColor, QKeySequence, QShortcut, QIcon, QPixmap, QAction, QActionGroup
 from flow_layout import FlowLayout
 
 # ╔══════════════════════════════════════════════════════════════════╗
@@ -117,28 +117,241 @@ Text: {{source_text}}"""
 
 
 DARK_SS = """
-QMainWindow, QWidget, QDialog { background: #1e1e2e; color: #cdd6f4; }
-QTableView, QTableWidget { background: #181825; color: #cdd6f4; gridline-color: #313244;
-    selection-background-color: #45475a; alternate-background-color: #1e1e2e;
-    font-size: 13px; }
-QHeaderView::section { background: #313244; color: #a6adc8; padding: 6px;
-    border: 1px solid #45475a; font-weight: bold; }
-QLineEdit, QTextEdit { background: #313244; color: #cdd6f4; border: 1px solid #45475a;
-    border-radius: 4px; padding: 6px; font-size: 14px; }
-QPushButton { background: #45475a; color: #cdd6f4; border: none;
-    border-radius: 4px; padding: 8px 16px; font-size: 13px; font-weight: bold; }
-QPushButton:hover { background: #585b70; }
-QPushButton#btnSave { background: #a6e3a1; color: #1e1e2e; }
-QPushButton#btnRetranslate { background: #89b4fa; color: #1e1e2e; font-size: 12px; padding: 4px 8px; }
-QGroupBox { border: 1px solid #45475a; border-radius: 6px; margin-top: 10px;
-    padding-top: 14px; font-weight: bold; color: #89b4fa; }
-QGroupBox::title { subcontrol-origin: margin; left: 10px; }
-QComboBox { background: #313244; color: #cdd6f4; border: 1px solid #45475a;
-    border-radius: 4px; padding: 4px 8px; }
-QSplitter::handle { background: #313244; }
-QMainWindow::separator { background: #45475a; width: 6px; height: 6px; }
+* { outline: none; }
+QMainWindow, QWidget, QDialog { background: #1e1e2e; color: #cdd6f4; font-size: 13px; }
+
+QPushButton { background: #313244; color: #cdd6f4; border: 1px solid #313244;
+    border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; }
+QPushButton:hover { background: #45475a; border-color: #45475a; }
+QPushButton:pressed { background: #585b70; }
+QPushButton:disabled { background: #24243a; color: #6c7086; }
+QPushButton#btnSave { background: #a6e3a1; color: #1e1e2e; border: none; }
+QPushButton#btnSave:hover { background: #b9f0b3; }
+QPushButton#btnRetranslate { background: #89b4fa; color: #1e1e2e; border: none; font-size: 12px; padding: 5px 12px; }
+QPushButton#btnRetranslate:hover { background: #a3c4fb; }
+
+QLineEdit, QTextEdit, QPlainTextEdit { background: #181825; color: #cdd6f4;
+    border: 1px solid #313244; border-radius: 8px; padding: 6px 10px; font-size: 13px;
+    selection-background-color: #45475a; selection-color: #cdd6f4; }
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus { border: 1px solid #89b4fa; }
+
+QComboBox { background: #313244; color: #cdd6f4; border: 1px solid #313244;
+    border-radius: 8px; padding: 6px 12px; min-height: 18px; }
+QComboBox:hover { background: #45475a; border-color: #45475a; }
+QComboBox::drop-down { border: none; width: 24px; }
+QComboBox::down-arrow { width: 0; height: 0; border-left: 5px solid transparent;
+    border-right: 5px solid transparent; border-top: 6px solid #a6adc8; margin-right: 8px; }
+QComboBox QAbstractItemView { background: #1e1e2e; color: #cdd6f4; border: 1px solid #313244;
+    border-radius: 8px; padding: 4px; selection-background-color: #45475a; selection-color: #cdd6f4; }
+
+QTableView, QTableWidget { background: #181825; color: #cdd6f4; gridline-color: #24243a;
+    alternate-background-color: #1e1e2e; border: 1px solid #313244; border-radius: 8px;
+    selection-background-color: rgba(137,180,250,60); selection-color: #cdd6f4; font-size: 13px; }
+QTableView::item, QTableWidget::item { padding: 4px 8px; }
+QTableView::item:hover, QTableWidget::item:hover { background: rgba(137,180,250,25); }
+QHeaderView { background: transparent; border: none; }
+QHeaderView::section { background: #1e1e2e; color: #a6adc8; padding: 8px 8px;
+    border: none; border-bottom: 1px solid #313244; font-weight: 600; font-size: 12px; }
+
+QMenuBar { background: #1e1e2e; color: #cdd6f4; border-bottom: 1px solid #313244; }
+QMenuBar::item { background: transparent; padding: 6px 12px; border-radius: 6px; }
+QMenuBar::item:selected { background: #313244; }
+QMenu { background: #1e1e2e; color: #cdd6f4; border: 1px solid #313244;
+    border-radius: 10px; padding: 6px; }
+QMenu::item { padding: 7px 26px 7px 14px; border-radius: 6px; }
+QMenu::item:selected { background: #45475a; }
+QMenu::separator { height: 1px; background: #313244; margin: 5px 8px; }
+QMenu::indicator { width: 14px; height: 14px; margin-left: 6px; }
+
+QDockWidget { titlebar-close-icon: none; titlebar-normal-icon: none; }
+QDockWidget::title { background: #181825; color: #a6adc8; padding: 7px 12px;
+    border-bottom: 1px solid #24243a; font-size: 12px; font-weight: 600; }
+
+QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }
+QScrollBar::handle:vertical { background: rgba(166,173,200,70); border-radius: 5px; min-height: 30px; }
+QScrollBar::handle:vertical:hover { background: rgba(166,173,200,130); }
+QScrollBar:horizontal { background: transparent; height: 10px; margin: 2px; }
+QScrollBar::handle:horizontal { background: rgba(166,173,200,70); border-radius: 5px; min-width: 30px; }
+QScrollBar::handle:horizontal:hover { background: rgba(166,173,200,130); }
+QScrollBar::add-line, QScrollBar::sub-line { height: 0; width: 0; }
+QScrollBar::add-page, QScrollBar::sub-page { background: transparent; }
+
+QTabWidget::pane { border: 1px solid #313244; border-radius: 8px; top: -1px; }
+QTabBar::tab { background: transparent; color: #a6adc8; padding: 8px 18px;
+    border-bottom: 2px solid transparent; font-weight: 600; }
+QTabBar::tab:hover { color: #cdd6f4; }
+QTabBar::tab:selected { color: #89b4fa; border-bottom: 2px solid #89b4fa; }
+
+QGroupBox { border: 1px solid #313244; border-radius: 10px; margin-top: 12px;
+    padding: 10px 8px 8px 8px; font-weight: 600; color: #89b4fa; }
+QGroupBox::title { subcontrol-origin: margin; left: 12px; }
+
+QCheckBox { spacing: 8px; }
+QCheckBox::indicator { width: 17px; height: 17px; border-radius: 5px;
+    border: 1px solid #585b70; background: #181825; }
+QCheckBox::indicator:hover { border-color: #89b4fa; }
+QCheckBox::indicator:checked { background: #89b4fa; border-color: #89b4fa; }
+
+QProgressBar#batchProgress { background: #181825; border: 1px solid #313244;
+    border-radius: 7px; text-align: center; color: #cdd6f4; font-weight: 600; }
+QProgressBar#batchProgress::chunk { background-color: #a6e3a1; border-radius: 6px; }
+
+QToolTip { background: #313244; color: #cdd6f4; border: 1px solid #45475a;
+    border-radius: 6px; padding: 5px 8px; }
+
+QStatusBar { background: #1e1e2e; color: #a6adc8; border-top: 1px solid #313244; }
+QSplitter::handle { background: #24243a; }
+QMainWindow::separator { background: #24243a; width: 5px; height: 5px; }
 QMainWindow::separator:hover { background: #89b4fa; }
+
+QTextEdit#paneSource { background: #181825; color: #a6adc8; border-color: #24243a; }
+QTextEdit#paneAi { background: #181825; color: #f9e2af; border-color: #24243a; }
+QLabel#glossaryCheat { color: #f9e2af; font-size: 12px; background: #313244; padding: 6px 10px; border-radius: 6px; }
+QCheckBox#chkTlm { color: #a6adc8; font-size: 12px; margin-left: 10px; }
 """
+
+# Light counterpart of DARK_SS (Catppuccin Latte palette)
+LIGHT_SS = """
+* { outline: none; }
+QMainWindow, QWidget, QDialog { background: #eff1f5; color: #4c4f69; font-size: 13px; }
+
+QPushButton { background: #ffffff; color: #4c4f69; border: 1px solid #ccd0da;
+    border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; }
+QPushButton:hover { background: #e6e9ef; border-color: #bcc0cc; }
+QPushButton:pressed { background: #dce0e8; }
+QPushButton:disabled { background: #e6e9ef; color: #8c8fa1; }
+QPushButton#btnSave { background: #40a02b; color: #ffffff; border: none; }
+QPushButton#btnSave:hover { background: #48b12f; }
+QPushButton#btnRetranslate { background: #1e66f5; color: #ffffff; border: none; font-size: 12px; padding: 5px 12px; }
+QPushButton#btnRetranslate:hover { background: #3a77f7; }
+
+QLineEdit, QTextEdit, QPlainTextEdit { background: #ffffff; color: #4c4f69;
+    border: 1px solid #ccd0da; border-radius: 8px; padding: 6px 10px; font-size: 13px;
+    selection-background-color: #ccb4f5; selection-color: #4c4f69; }
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus { border: 1px solid #1e66f5; }
+
+QComboBox { background: #ffffff; color: #4c4f69; border: 1px solid #ccd0da;
+    border-radius: 8px; padding: 6px 12px; min-height: 18px; }
+QComboBox:hover { background: #e6e9ef; border-color: #bcc0cc; }
+QComboBox::drop-down { border: none; width: 24px; }
+QComboBox::down-arrow { width: 0; height: 0; border-left: 5px solid transparent;
+    border-right: 5px solid transparent; border-top: 6px solid #6c6f85; margin-right: 8px; }
+QComboBox QAbstractItemView { background: #ffffff; color: #4c4f69; border: 1px solid #ccd0da;
+    border-radius: 8px; padding: 4px; selection-background-color: #e6e9ef; selection-color: #4c4f69; }
+
+QTableView, QTableWidget { background: #ffffff; color: #4c4f69; gridline-color: #e6e9ef;
+    alternate-background-color: #f5f6fa; border: 1px solid #dce0e8; border-radius: 8px;
+    selection-background-color: rgba(30,102,245,45); selection-color: #4c4f69; font-size: 13px; }
+QTableView::item, QTableWidget::item { padding: 4px 8px; }
+QTableView::item:hover, QTableWidget::item:hover { background: rgba(30,102,245,20); }
+QHeaderView { background: transparent; border: none; }
+QHeaderView::section { background: #eff1f5; color: #6c6f85; padding: 8px 8px;
+    border: none; border-bottom: 1px solid #ccd0da; font-weight: 600; font-size: 12px; }
+
+QMenuBar { background: #eff1f5; color: #4c4f69; border-bottom: 1px solid #ccd0da; }
+QMenuBar::item { background: transparent; padding: 6px 12px; border-radius: 6px; }
+QMenuBar::item:selected { background: #dce0e8; }
+QMenu { background: #ffffff; color: #4c4f69; border: 1px solid #ccd0da;
+    border-radius: 10px; padding: 6px; }
+QMenu::item { padding: 7px 26px 7px 14px; border-radius: 6px; }
+QMenu::item:selected { background: #e6e9ef; }
+QMenu::separator { height: 1px; background: #e6e9ef; margin: 5px 8px; }
+QMenu::indicator { width: 14px; height: 14px; margin-left: 6px; }
+
+QDockWidget { titlebar-close-icon: none; titlebar-normal-icon: none; }
+QDockWidget::title { background: #e6e9ef; color: #6c6f85; padding: 7px 12px;
+    border-bottom: 1px solid #dce0e8; font-size: 12px; font-weight: 600; }
+
+QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }
+QScrollBar::handle:vertical { background: rgba(140,143,161,90); border-radius: 5px; min-height: 30px; }
+QScrollBar::handle:vertical:hover { background: rgba(140,143,161,160); }
+QScrollBar:horizontal { background: transparent; height: 10px; margin: 2px; }
+QScrollBar::handle:horizontal { background: rgba(140,143,161,90); border-radius: 5px; min-width: 30px; }
+QScrollBar::handle:horizontal:hover { background: rgba(140,143,161,160); }
+QScrollBar::add-line, QScrollBar::sub-line { height: 0; width: 0; }
+QScrollBar::add-page, QScrollBar::sub-page { background: transparent; }
+
+QTabWidget::pane { border: 1px solid #ccd0da; border-radius: 8px; top: -1px; }
+QTabBar::tab { background: transparent; color: #6c6f85; padding: 8px 18px;
+    border-bottom: 2px solid transparent; font-weight: 600; }
+QTabBar::tab:hover { color: #4c4f69; }
+QTabBar::tab:selected { color: #1e66f5; border-bottom: 2px solid #1e66f5; }
+
+QGroupBox { border: 1px solid #ccd0da; border-radius: 10px; margin-top: 12px;
+    padding: 10px 8px 8px 8px; font-weight: 600; color: #1e66f5; }
+QGroupBox::title { subcontrol-origin: margin; left: 12px; }
+
+QCheckBox { spacing: 8px; }
+QCheckBox::indicator { width: 17px; height: 17px; border-radius: 5px;
+    border: 1px solid #acb0be; background: #ffffff; }
+QCheckBox::indicator:hover { border-color: #1e66f5; }
+QCheckBox::indicator:checked { background: #1e66f5; border-color: #1e66f5; }
+
+QProgressBar#batchProgress { background: #ffffff; border: 1px solid #ccd0da;
+    border-radius: 7px; text-align: center; color: #4c4f69; font-weight: 600; }
+QProgressBar#batchProgress::chunk { background-color: #40a02b; border-radius: 6px; }
+
+QToolTip { background: #ffffff; color: #4c4f69; border: 1px solid #bcc0cc;
+    border-radius: 6px; padding: 5px 8px; }
+
+QStatusBar { background: #eff1f5; color: #6c6f85; border-top: 1px solid #ccd0da; }
+QSplitter::handle { background: #dce0e8; }
+QMainWindow::separator { background: #dce0e8; width: 5px; height: 5px; }
+QMainWindow::separator:hover { background: #1e66f5; }
+
+QTextEdit#paneSource { background: #ffffff; color: #5c5f77; border-color: #dce0e8; }
+QTextEdit#paneAi { background: #ffffff; color: #9a6700; border-color: #dce0e8; }
+QLabel#glossaryCheat { color: #9a6700; font-size: 12px; background: #ccd0da; padding: 6px 10px; border-radius: 6px; }
+QCheckBox#chkTlm { color: #6c6f85; font-size: 12px; margin-left: 10px; }
+"""
+
+def detect_system_theme():
+    """Detect the OS light/dark preference. Cross-platform:
+    Qt colorScheme first, then platform fallbacks, then default dark (app heritage)."""
+    try:
+        scheme = QApplication.styleHints().colorScheme()
+        if scheme == Qt.ColorScheme.Light:
+            return "light"
+        if scheme == Qt.ColorScheme.Dark:
+            return "dark"
+    except Exception:
+        pass
+    if sys.platform == "darwin":
+        try:
+            import subprocess as _sp
+            out = _sp.check_output(["defaults", "read", "-g", "AppleInterfaceStyle"],
+                                   stderr=_sp.DEVNULL, timeout=3).decode().strip().lower()
+            return "dark" if out == "dark" else "light"
+        except Exception:
+            # ค่า AppleInterfaceStyle ไม่มี = ระบบอยู่โหมด Light
+            return "light"
+    if sys.platform == "win32":
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as k:
+                val, _ = winreg.QueryValueEx(k, "AppsUseLightTheme")
+                return "light" if val == 1 else "dark"
+        except Exception:
+            pass
+    return "dark"
+
+def resolve_theme_mode():
+    """ui_theme from config: 'system' (default) | 'dark' | 'light'."""
+    try:
+        mode = TStudioCore.load_config().get("ui_theme", "system")
+    except Exception:
+        mode = "system"
+    if mode in ("dark", "light"):
+        return mode
+    return detect_system_theme()
+
+def apply_theme():
+    """Apply the resolved stylesheet at application level (covers all windows/dialogs)."""
+    app = QApplication.instance()
+    if app is None:
+        return
+    app.setStyleSheet(LIGHT_SS if resolve_theme_mode() == "light" else DARK_SS)
 
 # Duplicates removed, now imported from tstudio_ui_shared.py
 
@@ -815,7 +1028,12 @@ class TranslationStudio(QMainWindow):
         self.setWindowTitle(f'Translation Studio — {GAME_NAME}')
         self.resize(1400, 800)
         self.setMinimumSize(800, 600)
-        self.setStyleSheet(DARK_SS)
+        # Theme: default follows the OS (ui_theme in config.json), switchable in View menu
+        apply_theme()
+        try:
+            QApplication.styleHints().colorSchemeChanged.connect(self._on_system_scheme_changed)
+        except Exception:
+            pass
         self.current_source_row = -1
         self.current_zoom = 0
         self.threadpool = QThreadPool()
@@ -934,8 +1152,8 @@ class TranslationStudio(QMainWindow):
         
 
         self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("batchProgress")
         self.progress_bar.setMinimumWidth(220)
-        self.progress_bar.setStyleSheet("QProgressBar { border: 1px solid #45475a; border-radius: 4px; text-align: center; color: #1e1e2e; font-weight: bold; background: #313244; } QProgressBar::chunk { background-color: #a6e3a1; border-radius: 3px; }")
         self.progress_bar.setFormat(_("progress_no_file"))
         self.progress_bar.setValue(0)
         top_layout.addWidget(self.progress_bar)
@@ -976,11 +1194,11 @@ class TranslationStudio(QMainWindow):
         self.txt_source = QTextEdit()
         self.lbl_glossary_cheat = QLabel()
         self.lbl_glossary_cheat.setWordWrap(True)
-        self.lbl_glossary_cheat.setStyleSheet("color: #f9e2af; font-size: 12px; background: #313244; padding: 4px; border-radius: 4px;")
+        self.lbl_glossary_cheat.setObjectName("glossaryCheat")
         self.lbl_glossary_cheat.hide()
         l1.addWidget(self.lbl_glossary_cheat)
         self.txt_source.setReadOnly(True)
-        self.txt_source.setStyleSheet("background:#181825; color:#a6adc8;")
+        self.txt_source.setObjectName("paneSource")
         l1.addWidget(self.txt_source)
         self.dock_source.setWidget(src_w)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_source)
@@ -996,7 +1214,7 @@ class TranslationStudio(QMainWindow):
         l2.setContentsMargins(5, 5, 5, 5)
         self.txt_ai = QTextEdit()
         self.txt_ai.setReadOnly(True)
-        self.txt_ai.setStyleSheet("background:#181825; color:#f9e2af;")
+        self.txt_ai.setObjectName("paneAi")
         l2.addWidget(self.txt_ai)
         self.dock_ai.setWidget(ai_w)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock_ai)
@@ -1035,7 +1253,7 @@ class TranslationStudio(QMainWindow):
         self.chk_use_tlm = QCheckBox(_("chk_tlm_toggle"))
         self.chk_use_tlm.setChecked(True)
         self.chk_use_tlm.setToolTip(_("tooltip_tlm_toggle"))
-        self.chk_use_tlm.setStyleSheet("color: #a6adc8; font-size: 12px; margin-left: 10px;")
+        self.chk_use_tlm.setObjectName("chkTlm")
         
         # Build the menu for special adjustments
         self.special_menu = QMenu(self)
@@ -1120,9 +1338,9 @@ class TranslationStudio(QMainWindow):
         # Capture default layout state before user config overrides it
         self.default_layout_state = self.saveState()
         self.restore_layout_state()
-        
-        if os.path.exists(self.csv_path):
-            self._load_csv()
+
+        # เริ่มที่หน้า Welcome — ไม่โหลด translation.csv อัตโนมัติอีกต่อไป
+        # (ผู้ใช้เปิดไฟล์เองผ่านการ์ด/เมนู หรือรายการ "เปิดล่าสุด")
 
 
     
@@ -1395,12 +1613,48 @@ class TranslationStudio(QMainWindow):
         
         self.float_menu = view_menu.addMenu(_("menu_float_dock"))
         self.float_menu.aboutToShow.connect(self.populate_float_menu)
-        
+
+        view_menu.addSeparator()
+
+        # --- Theme submenu (default: follow system) ---
+        theme_menu = view_menu.addMenu(_("menu_theme"))
+        self._theme_group = QActionGroup(self)
+        self._theme_group.setExclusive(True)
+        try:
+            current_theme_mode = TStudioCore.load_config().get("ui_theme", "system")
+        except Exception:
+            current_theme_mode = "system"
+        for theme_mode, theme_label in (("system", _("theme_system")), ("dark", _("theme_dark")), ("light", _("theme_light"))):
+            act_theme = QAction(theme_label, self)
+            act_theme.setCheckable(True)
+            act_theme.setChecked(current_theme_mode == theme_mode)
+            act_theme.triggered.connect(lambda checked, m=theme_mode: self.set_ui_theme(m))
+            self._theme_group.addAction(act_theme)
+            theme_menu.addAction(act_theme)
+
         view_menu.addSeparator()
         
         # --- Layouts Menu ---
         self.layouts_menu = menubar.addMenu(_("menu_layouts"))
         self.layouts_menu.aboutToShow.connect(self.populate_layouts_menu)
+
+    def set_ui_theme(self, mode):
+        """สลับธีม UI (system | dark | light) — มีผลทันทีและบันทึกลง config.json"""
+        try:
+            cfg = TStudioCore.load_config()
+            cfg["ui_theme"] = mode
+            TStudioCore.save_config(cfg)
+        except Exception as e:
+            print(f"Error saving ui_theme: {e}")
+        apply_theme()
+
+    def _on_system_scheme_changed(self, *args):
+        """OS สลับ Light/Dark ระหว่างใช้งาน — อัปเดตตามเฉพาะเมื่อตั้งไว้เป็น 'system'"""
+        try:
+            if TStudioCore.load_config().get("ui_theme", "system") == "system":
+                apply_theme()
+        except Exception:
+            pass
 
     def populate_panels_menu(self):
         self.panels_menu.clear()
@@ -2383,7 +2637,7 @@ class TranslationStudio(QMainWindow):
                 return
             self.statusBar().showMessage(_("loading_file_status"))
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            
+
             def run_convert():
                 try:
                     from tbundle_manager import TBundleManager
@@ -2393,7 +2647,7 @@ class TranslationStudio(QMainWindow):
                             return csv_out
                 except Exception as e:
                     print(f"Bundle extract error: {e}")
-                    
+
                 try:
                     if file_path.lower().endswith('.win'):
                         import sys
@@ -2408,13 +2662,13 @@ class TranslationStudio(QMainWindow):
                             return csv_out
                 except Exception as e:
                     print(f"UTMT extract error: {e}")
-                    
+
                 try:
                     if file_path.lower().endswith('.txt'):
                         import re, csv as _csv
                         with open(file_path, 'r', encoding='utf-8-sig', errors='replace') as f:
                             raw = f.readlines()
-                        
+
                         # Detect TellTale format: lines starting with "N) " or "N) CHARACTER"
                         id_pattern = re.compile(r'^(\d+)\)\s*(.*)')
                         entries = []
@@ -2432,7 +2686,7 @@ class TranslationStudio(QMainWindow):
                                         i += 1  # consume text line
                                 entries.append((line_id, character, text))
                             i += 1
-                        
+
                         # Need at least 10 entries to be confident it's TellTale format
                         if len(entries) >= 5:
                             import os as _os
@@ -2452,9 +2706,9 @@ class TranslationStudio(QMainWindow):
                     print(f"TellTale txt parse error: {e}")
 
                 # Hardcoded JSON parser removed to allow CustomParsers plugin system to handle .json
-                    
+
                 return file_converter.auto_convert_to_csv(file_path, None) # Don't pass UI to thread
-                
+
             def on_success(converted_path):
                 QApplication.restoreOverrideCursor()
                 if converted_path:
@@ -2476,19 +2730,19 @@ class TranslationStudio(QMainWindow):
                         else:
                             return
                     self.csv_path = converted_path
-                    
+
                     # Save origin_file in config!
                     from tstudio_core import TStudioCore
                     cfg = TStudioCore.load_config()
                     cfg["origin_file"] = file_path
                     TStudioCore.save_config(cfg)
-                    
+
                     self._load_csv()
-                    
+
             def on_error(err):
                 QApplication.restoreOverrideCursor()
                 QMessageBox.critical(self, _("file_error_title"), f"Failed to open or convert file:\n{err}")
-                
+
             worker = ApiWorker(run_convert)
             forwarder = ThreadSafeWorkerSignalsForwarder(on_success, on_error, self)
             worker.signals.finished.connect(forwarder.handle_finished)
