@@ -99,6 +99,10 @@ python development/tests/boot_test.py
    case-sensitive (Linux/APFS บางแบบ) → แก้ให้ case-tolerant แล้ว (round-trip ผ่านครบ 2,208 mappings)
 2. ~~เชื่อม QA checker~~ ✅ **เสร็จ (31/10 · 2b2d8c6)** — เมนู Tools → ตรวจ QA คำแปล (dry-run/รายงาน/auto-fix)
    + QA gate ก่อน deploy (opt-in) + Settings ช่อง QA Checker (`qa_checker_path`) — รายละเอียด `../docs/spec-qa-bridge.md`
+   · **ระยะสองเสร็จด้วย (31/10 · b0d761c)**: bridge ใช้ `--json` เป็นแหล่งความจริง (counts/สรุป i18n `qa_summary_total`
+   /report path) + fallback รันซ้ำแบบไม่มี --json ให้ checker เก่า · acceptance ระยะสอง 4/4 + ระยะแรกรันซ้ำผ่าน +
+   GLQA CI 64/64 · ตามมาแก้บั๊กแฝง: QHBoxLayout ขาดหายทำให้ dialog ผล QA เปิดไม่ได้ (93cf7b8) และพาสี
+   painter/QColor 36 จุดเข้าระบบธีมผ่าน `themed_color()` (b6a8ea0)
 
 3. ทดสอบ AI แปลจริงบน macOS (ต้องใส่ API key ก่อน — โค้ดพร้อมแล้ว)
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
