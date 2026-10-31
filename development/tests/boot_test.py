@@ -34,14 +34,14 @@ app = tstudio_app.QApplication(sys.argv)
 win = tstudio_app.TranslationStudio()
 
 print("[2] สถานะเริ่มต้น")
-check("เริ่มที่หน้า Welcome", win.view_stack.currentIndex() == 0)
+check("เริ่มที่หน้า Welcome (workspace_stack index 0)", win.workspace_stack.currentIndex() == 0)
 check("dashboard ซ่อนตอนเริ่ม", win.dashboard_dock.isHidden())
 
 print("[3] โหลดไฟล์ทดสอบ")
 win.csv_path = os.path.join(HERE, "tstudio_test.csv")
 win._load_csv()
 app.processEvents()
-check("สลับไปหน้าตาราง", win.view_stack.currentIndex() == 1)
+check("สลับไปหน้า CAT Studio (index 1)", win.workspace_stack.currentIndex() == 1)
 check("dashboard แสดงอัตโนมัติ", not win.dashboard_dock.isHidden())
 check("โหลดได้ 5 บรรทัด", len(win.model._data) == 5)
 

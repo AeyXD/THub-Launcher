@@ -67,10 +67,13 @@ python development/tests/boot_test.py
 # หรือทดสอบธีมเฉพาะ: QT_QPA_PLATFORM=offscreen python <สคริปต์>
 ```
 
-## 6. สถานะ Git — ✅ commit แล้ว (2026-10-30 บ่าย)
+## 6. สถานะ Git — ✅ commit แล้วเป็น 4 ชุดตามแผน (2026-10-30 บ่าย)
 
-- งานทั้งหมดถูก commit เป็น 3 commits บน `main` แล้ว: `fix:` (c431d7b) · `feat:` ธีม+UI+welcome+dashboard (379a55a) · `docs:` (57e4fd2) — **ยังไม่ push** (ตามกติกา push เฉพาะ origin และเมื่อเจ้าของสั่ง)
+- `fix:` (c431d7b) บั๊กสองตัว · `feat:` ธีม+UI facelift (e64fc8e) · `feat:` welcome+dashboard (529d8b9) · `docs:` (31d853f)
+  — **ยังไม่ push** (ตามกติกา push เฉพาะ origin และเมื่อเจ้าของสั่ง) · working tree สะอาด
 - `prompts.json` runtime state ถูก discard ก่อน commit แล้ว · `.DS_Store` เพิ่มใน .gitignore
+- การแยก feat เป็น 2 commits ทำโดยสร้าง "รุ่นกลาง theme-only" (ถอดส่วน welcome/dashboard ออกชั่วคราว
+  ก่อน commit แล้วคืนไฟล์เต็ม) — ทุก commit ผ่าน syntax/offscreen ตรวจ และ boot test 9/9 บนรุ่นสุดท้าย
 - **ขั้นต่อไป:** merge `upstream/main` (THub 2.2) ตาม briefing `../docs/merge-prep-thub22.md` — เตรียมแก้ conflict ใน 5 ไฟล์ที่ทับซ้อน
 
 ## 7. การตัดสินใจออกแบบที่ควรรู้
