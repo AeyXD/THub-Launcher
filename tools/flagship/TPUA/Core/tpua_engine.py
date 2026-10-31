@@ -4,6 +4,17 @@ import os
 # Default mapping path: look in the same directory as this engine file (Core/mapping.json)
 DEFAULT_MAPPING_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mapping.json")
 
+def _resolve_default_mapping_path():
+    """หาไฟล์ mapping แบบ tolerant ต่อตัวพิมพ์ใหญ่-เล็กของชื่อไฟล์
+    (ไฟล์จริงใน repo ชื่อ Mapping.json — บน filesystem แบบ case-sensitive เช่น Linux
+    การหา 'mapping.json' ตรง ๆ จะไม่เจอ ทำให้ engine เงียบไปทั้งตัว)"""
+    base = os.path.dirname(os.path.abspath(__file__))
+    for cand in ("mapping.json", "Mapping.json"):
+        p = os.path.join(base, cand)
+        if os.path.exists(p):
+            return p
+    return DEFAULT_MAPPING_PATH
+
 class TPUAEngine:
     def __init__(self, mapping_path=None):
         self.standard = {}
@@ -15,8 +26,8 @@ class TPUAEngine:
     def load_mapping(self, mapping_path=None):
         path_to_use = mapping_path
         if not path_to_use or not os.path.exists(path_to_use):
-            # Fallback to default mapping in Core directory
-            path_to_use = DEFAULT_MAPPING_PATH
+            # Fallback to default mapping in Core directory (case-tolerant)
+            path_to_use = _resolve_default_mapping_path()
 
         if not os.path.exists(path_to_use):
             print(f"TPUAEngine Warning: Mapping file not found at {path_to_use}. PUA operations will do nothing.")
