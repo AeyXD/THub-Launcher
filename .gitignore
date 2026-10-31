@@ -235,7 +235,7 @@ tools/flagship/Core/_legacy_archive/
 workspace/
 _archive/
 scratch/
-tests/
+/tests/
 assets/cover_cache/
 scan_results.json
 

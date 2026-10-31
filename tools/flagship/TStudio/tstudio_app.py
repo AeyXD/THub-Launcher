@@ -77,8 +77,8 @@ from PyQt6.QtWidgets import (
     QFileDialog, QMenu, QSpinBox, QProgressBar, QDockWidget, QMenuBar, QSizePolicy, QToolButton, QCheckBox,
     QStackedWidget, QFrame, QStyledItemDelegate, QStyle, QGraphicsDropShadowEffect, QTabWidget
 )
-from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QTimer, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher, QRect, QRectF, QPoint, QSize
-from PyQt6.QtGui import QColor, QKeySequence, QShortcut, QIcon, QPixmap, QAction, QPainter, QBrush, QPen, QFont
+from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QTimer, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher, QRect, QRectF, QPoint, QSize, QEvent
+from PyQt6.QtGui import QColor, QKeySequence, QShortcut, QIcon, QPixmap, QAction, QActionGroup, QPainter, QBrush, QPen, QFont
 from flow_layout import FlowLayout
 from tstudio_dashboard import WelcomeScreen, DashboardPanel
 from tstudio_qa_bridge import find_checker, run_checker, QaResultDialog
@@ -638,7 +638,166 @@ QProgressBar#dashTagBar::chunk { background-color: #89b4fa; border-radius: 3px; 
 QLabel#dashTagLabel { font-size: 12px; background: transparent; color: #a6adc8; }
 QLabel#dashTagCount { font-size: 12px; background: transparent; color: #6c7086; }
 """
+# ═════════════════════════════════════════════════════════════════════
+# THEME SYSTEM — 3 โหมด: system | dark | light
+# Light variant ของ MASTERPIECE_SS สร้างจากตาราง remap เดียว (Mocha→Latte):
+#   1) LIGHT_SS = _remap_colors(MASTERPIECE_SS) — selector parity 100% กับ dark
+#   2) inline stylesheet ที่ upstream 2.2 hardcode สีไว้ (~128 จุด) ถูก remap
+#      ด้วยตารางเดียวกันตอน apply_theme() + event filter (Polish/StyleChange)
+#      จับ widget ที่สร้างใหม่หรือถูก set สีใหม่ภายหลัง เช่น dialog, ปุ่ม status
+# ⚠️ เพิ่มสีใหม่ใน QSS หรือ inline stylesheet → ต้องเพิ่มคู่ใน _MOCHA_TO_LATTE ด้วย
+# ═════════════════════════════════════════════════════════════════════
+_MOCHA_TO_LATTE = {
+    # — Catppuccin ทางการ: Mocha → Latte —
+    "#11111b": "#dce0e8",   # crust
+    "#181825": "#e6e9ef",   # mantle
+    "#1e1e2e": "#eff1f5",   # base
+    "#313244": "#ccd0da",   # surface0
+    "#45475a": "#bcc0cc",   # surface1
+    "#585b70": "#acb0be",   # surface2
+    "#6c7086": "#9ca0b0",   # overlay0
+    "#7f849c": "#7c7f93",   # overlay2
+    "#a6adc8": "#6c6f85",   # subtext0
+    "#bac2de": "#5c5f77",   # subtext1
+    "#cdd6f4": "#4c4f69",   # text
+    "#89b4fa": "#1e66f5",   # blue
+    "#89dceb": "#04a5e5",   # sky
+    "#94e2d5": "#179299",   # teal
+    "#a6e3a1": "#40a02b",   # green
+    "#b4befe": "#7287fd",   # lavender
+    "#cba6f7": "#8839ef",   # mauve
+    "#f38ba8": "#d20f39",   # red
+    "#eba0ac": "#e64553",   # maroon (hover ของแดง)
+    "#f5c2e7": "#ea76cb",   # pink
+    "#f9e2af": "#df8e1d",   # yellow
+    "#fab387": "#fe640b",   # peach
+    # — เฉดพิเศษของ Masterpiece shell —
+    "#14141e": "#dfe3eb",   # header เข้มกว่า mantle
+    "#1e2433": "#e0e4ee",   # wsCard:hover (ต้องต่างจาก mantle)
+    "#24243a": "#d9dde8",   # dashCard border
+    "#2a2b3d": "#c5cbdb",   # selection bg ในตาราง
+    # — tint เฉพาะทาง (analyzer/batch dock/ปุ่ม patch) —
+    "#1a2332": "#c4c8ce",
+    "#1e2a24": "#c5c9cb",
+    "#2a1818": "#bcb9bc",
+    "#2a1e24": "#c4c3c7",
+    "#2a2b1e": "#c4c5c6",
+    "#2b2230": "#c4c3ca",
+    "#2b261e": "#c0c0c1",
+    "#2d1a32": "#bdb9c2",
+    "#3b5e47": "#a3b3ac",
+    "#3c2424": "#bdb8ba",
+    "#3c2432": "#c4c0c6",
+    "#5e313b": "#beb0b6",
+    "#5e5a3b": "#bebeb6",
+    "#6b406a": "#c7bccb",
+    "#6e5c3b": "#c3beb6",
+    "#7c3a5e": "#c8b3c2",
+}
+
 DARK_SS = MASTERPIECE_SS
+_LATTE_TO_MOCHA = {v: k for k, v in _MOCHA_TO_LATTE.items()}
+assert len(_LATTE_TO_MOCHA) == len(_MOCHA_TO_LATTE), \
+    "ตารางธีมมี target ซ้ำ — remap กลับ (light→dark) จะผิด"
+
+
+def _remap_colors(css, mapping):
+    """สลับค่าสี hex ใน stylesheet ตามตาราง mapping (case-insensitive)"""
+    if not css:
+        return css
+    def _sub(m):
+        return mapping.get(m.group(0).lower(), m.group(0))
+    return re.sub(r"#[0-9a-fA-F]{6}\b", _sub, css)
+
+
+LIGHT_SS = _remap_colors(MASTERPIECE_SS, _MOCHA_TO_LATTE)
+
+
+def detect_system_theme():
+    """Detect the OS light/dark preference. Cross-platform:
+    Qt colorScheme first, then platform fallbacks, then default dark (app heritage)."""
+    try:
+        scheme = QApplication.styleHints().colorScheme()
+        if scheme == Qt.ColorScheme.Light:
+            return "light"
+        if scheme == Qt.ColorScheme.Dark:
+            return "dark"
+    except Exception:
+        pass
+    if sys.platform == "darwin":
+        try:
+            import subprocess as _sp
+            out = _sp.check_output(["defaults", "read", "-g", "AppleInterfaceStyle"],
+                                   stderr=_sp.DEVNULL, timeout=3).decode().strip().lower()
+            return "dark" if out == "dark" else "light"
+        except Exception:
+            # ค่า AppleInterfaceStyle ไม่มี = ระบบอยู่โหมด Light
+            return "light"
+    if sys.platform == "win32":
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize") as k:
+                val, _ = winreg.QueryValueEx(k, "AppsUseLightTheme")
+                return "light" if val == 1 else "dark"
+        except Exception:
+            pass
+    return "dark"
+
+
+def resolve_theme_mode():
+    """ui_theme from config: 'system' (default) | 'dark' | 'light'."""
+    try:
+        mode = TStudioCore.load_config().get("ui_theme", "system")
+    except Exception:
+        mode = "system"
+    if mode in ("dark", "light"):
+        return mode
+    return detect_system_theme()
+
+
+# cache ของโหมดปัจจุบัน — event filter อ่านตัวแปรนี้แทนการอ่าน config ทุก event
+_theme_light_active = False
+_theme_filter_installed = False
+
+
+def _remap_widget_inline(w, light):
+    """remap สี inline stylesheet ของ widget หนึ่งตัว ไป/กลับ ระหว่าง dark↔light"""
+    ss = w.styleSheet()
+    if not ss:
+        return
+    new_ss = _remap_colors(ss, _MOCHA_TO_LATTE if light else _LATTE_TO_MOCHA)
+    if new_ss != ss:
+        w.setStyleSheet(new_ss)
+
+
+class _ThemeInlineStyleFilter(QObject):
+    """เมื่อโหมดสว่างใช้งาน: จับ widget ที่เพิ่งถูกสร้าง (Polish) หรือถูก setStyleSheet
+    ใหม่ (StyleChange) เพื่อ remap สี inline ให้เข้าธีม — ครอบคลุม dialog/ปุ่ม status
+    ที่โผล่หรือเปลี่ยนสีหลัง apply_theme() ไปแล้ว (remap ซ้ำเป็น no-op จึงไม่วนลูป)"""
+
+    def eventFilter(self, obj, event):
+        if _theme_light_active and event.type() in (QEvent.Type.Polish, QEvent.Type.StyleChange):
+            if isinstance(obj, QWidget):
+                _remap_widget_inline(obj, True)
+        return False
+
+
+def apply_theme():
+    """Apply the resolved theme at application level (covers all windows/dialogs)
+    พร้อม remap สี inline ของ widget ทั้งแอปให้ตรงโหมดปัจจุบัน"""
+    global _theme_light_active, _theme_filter_installed
+    app = QApplication.instance()
+    if app is None:
+        return
+    _theme_light_active = resolve_theme_mode() == "light"
+    app.setStyleSheet(LIGHT_SS if _theme_light_active else DARK_SS)
+    if not _theme_filter_installed:
+        app.installEventFilter(_ThemeInlineStyleFilter(app))
+        _theme_filter_installed = True
+    for top in QApplication.topLevelWidgets():
+        for w in [top] + top.findChildren(QWidget):
+            _remap_widget_inline(w, _theme_light_active)
 
 
 # Duplicates removed, now imported from tstudio_ui_shared.py
@@ -706,7 +865,12 @@ class TranslationStudio(QMainWindow):
         self.setWindowTitle(f'Translation Studio — {GAME_NAME}')
         self.resize(1440, 860)
         self.setMinimumSize(1200, 720)
-        self.setStyleSheet(MASTERPIECE_SS)
+        # Theme: default follows the OS (ui_theme in config.json), switchable in View menu
+        apply_theme()
+        try:
+            QApplication.styleHints().colorSchemeChanged.connect(self._on_system_scheme_changed)
+        except Exception:
+            pass
 
         # Set Window and Taskbar Icon
         app_icon = get_tstudio_icon()
@@ -3637,7 +3801,23 @@ class TranslationStudio(QMainWindow):
         act_mode_trun.setShortcut("F2")
         act_mode_trun.triggered.connect(lambda: self.switch_workspace_mode('trun'))
         mode_menu.addAction(act_mode_trun)
-        
+
+        # Theme menu — ระบบธีม 3 โหมด (system / dark / light)
+        theme_menu = view_menu.addMenu(_("menu_theme"))
+        self._theme_group = QActionGroup(self)
+        self._theme_group.setExclusive(True)
+        try:
+            current_theme_mode = TStudioCore.load_config().get("ui_theme", "system")
+        except Exception:
+            current_theme_mode = "system"
+        for theme_mode, theme_label in (("system", _("theme_system")), ("dark", _("theme_dark")), ("light", _("theme_light"))):
+            act_theme = QAction(theme_label, self)
+            act_theme.setCheckable(True)
+            act_theme.setChecked(current_theme_mode == theme_mode)
+            act_theme.triggered.connect(lambda checked, m=theme_mode: self.set_ui_theme(m))
+            self._theme_group.addAction(act_theme)
+            theme_menu.addAction(act_theme)
+
         view_menu.addSeparator()
         
         self.panels_menu = view_menu.addMenu(_("menu_panels"))
@@ -3662,6 +3842,24 @@ class TranslationStudio(QMainWindow):
         act_cheatsheet.triggered.connect(self.open_shortcuts_cheatsheet)
         self.help_menu.addAction(act_cheatsheet)
         _register_action(act_cheatsheet)
+
+    def set_ui_theme(self, mode):
+        """สลับธีม UI (system | dark | light) — มีผลทันทีและบันทึกลง config.json"""
+        try:
+            cfg = TStudioCore.load_config()
+            cfg["ui_theme"] = mode
+            TStudioCore.save_config(cfg)
+        except Exception as e:
+            print(f"Error saving ui_theme: {e}")
+        apply_theme()
+
+    def _on_system_scheme_changed(self, *args):
+        """OS สลับ Light/Dark ระหว่างใช้งาน — อัปเดตตามเฉพาะเมื่อตั้งไว้เป็น 'system'"""
+        try:
+            if TStudioCore.load_config().get("ui_theme", "system") == "system":
+                apply_theme()
+        except Exception:
+            pass
 
     def populate_panels_menu(self):
         self.panels_menu.clear()
