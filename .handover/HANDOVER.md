@@ -112,6 +112,14 @@ python development/tests/boot_test.py
    "กด {0} เพื่อโต้ตอบ" · 4.6 วิ · รักษา placeholder ครบ) · auto-save เขียนลง CSV จริง · dashboard
    80% (4/5) ถูกต้อง — แถวที่เหลือเป็น source ภาษาไทย (fixture) ไม่เข้าเกณฑ์ EN→TH · ระหว่างทางปิด
    code smell `_infer_provider` นิยามซ้ำใน SettingsDialog ด้วย (eaf821f)
+7. ~~**Game Tools Phase B+C**~~ ✅ **เสร็จ (1/11/2026 · f752da1)** — ตาม `../docs/spec-game-tools.md`
+   (Phase A ของ TFP จบที่ 3204d9b) · Plugin Manager มีแท็บ Game Tools
+   (เห็น 8 เกม ติดตั้ง/อัพเดตทั้งหมูลง CustomParsers/GameTools/<Game>/) · เมนู Tools →
+   แตกไฟล์เกม + Pack กลับ (ขับเสนอใน deploy flow เมื่อ origin_file ตรงเกม) ·
+   ขับเคลือนด้วย manifest ล้วน subprocess (โมดูลใหม่ tstudio_game_tools.py) ·
+   acceptance ครบ 17/17 (รวม Boltgun round-trip จริง + offline + MetroExodus .lng จริง) · boot_test ผ่าน ·
+   หมายเหตุ: หลัง Pack กลับแล้ว unpack ซ้ำ ค่าที่แก้จะอยู่คอลัมน์ Source
+   (ไฟล์เกมเก็บสตริงเดียวต่อ entry) — เป็นพฤติกรรมที่ถูกต้อง
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
 5. ~~แจ้งบั๊ก/ส่ง PR กลับ upstream~~ ✅ **ส่งแล้ว (31/10/2026 · [upstream PR #2](https://github.com/memolyviza2012-max/THub-Launcher/pull/2))**
    บั๊ก PUA ของ Core (c431d7b) — branch `fix/pua-mapping-format` (9bbfad3) แตกจาก upstream/main
