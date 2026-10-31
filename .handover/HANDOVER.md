@@ -96,9 +96,9 @@ python development/tests/boot_test.py
    TPUA standalone **ไม่เคยมีบั๊ก no-op เหมือน Core** (มี guard `len==1` อยู่แล้วทั้งไฟล์) — สิ่งที่เจอจริงคือ
    latent bug ชื่อไฟล์: โค้ดหา `mapping.json` แต่ไฟล์จริงชื่อ `Mapping.json` ซึ่งเงียบหายบน filesystem
    case-sensitive (Linux/APFS บางแบบ) → แก้ให้ case-tolerant แล้ว (round-trip ผ่านครบ 2,208 mappings)
-2. **เชื่อม QA checker** — fork `AeyXD/game-localization-qa` มี `checker/thai_qa.py` (CLI พร้อมใช้)
-   เสียบเป็นขั้น QA หลัง `silent_save_csv` ก่อน `deploy_to_game` ได้เลย — ช่องว่างนี้ยังไม่มีใครเติม
-   (**สเปกพร้อม + base นิ่งหลัง merge 2.2 แล้ว**: `../docs/spec-qa-bridge.md`)
+2. ~~เชื่อม QA checker~~ ✅ **เสร็จ (31/10 · 2b2d8c6)** — เมนู Tools → ตรวจ QA คำแปล (dry-run/รายงาน/auto-fix)
+   + QA gate ก่อน deploy (opt-in) + Settings ช่อง QA Checker (`qa_checker_path`) — รายละเอียด `../docs/spec-qa-bridge.md`
+
 3. ทดสอบ AI แปลจริงบน macOS (ต้องใส่ API key ก่อน — โค้ดพร้อมแล้ว)
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
 5. แจ้งบั๊ก/ส่ง PR กลับ upstream (`memolyviza2012-max/THub-Launcher`): บั๊ก PUA ของ Core (c431d7b)
