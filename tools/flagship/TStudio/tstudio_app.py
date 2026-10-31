@@ -29,11 +29,12 @@ from PyQt6.QtWidgets import (
     QSplitter, QGroupBox, QComboBox, QMessageBox, QTextEdit,
     QAbstractItemView, QDialog, QFormLayout, QTableWidget,
     QTableWidgetItem, QRadioButton, QButtonGroup, QScrollArea,
-    QFileDialog, QMenu, QSpinBox, QProgressBar, QDockWidget, QMenuBar, QSizePolicy, QToolButton, QCheckBox
+    QFileDialog, QMenu, QSpinBox, QProgressBar, QDockWidget, QMenuBar, QSizePolicy, QToolButton, QCheckBox, QStackedWidget
 )
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QSortFilterProxyModel, QTimer, QRunnable, QThreadPool, pyqtSignal, pyqtSlot, QObject
 from PyQt6.QtGui import QColor, QKeySequence, QShortcut, QIcon, QPixmap, QAction, QActionGroup
 from flow_layout import FlowLayout
+from tstudio_dashboard import WelcomeScreen, DashboardPanel
 
 # ╔══════════════════════════════════════════════════════════════════╗
 # ║           PROJECT CONFIGURATION — GOTG SPECIFIC                 ║
@@ -208,6 +209,31 @@ QTextEdit#paneSource { background: #181825; color: #a6adc8; border-color: #24243
 QTextEdit#paneAi { background: #181825; color: #f9e2af; border-color: #24243a; }
 QLabel#glossaryCheat { color: #f9e2af; font-size: 12px; background: #313244; padding: 6px 10px; border-radius: 6px; }
 QCheckBox#chkTlm { color: #a6adc8; font-size: 12px; margin-left: 10px; }
+
+QLabel#wsHeroTitle { font-size: 28px; font-weight: 700; background: transparent; color: #cdd6f4; }
+QLabel#wsHeroSub { font-size: 13px; background: transparent; color: #a6adc8; }
+QFrame#wsCard { background: #181825; border: 1px solid #313244; border-radius: 12px; }
+QFrame#wsCard:hover { border-color: #89b4fa; background: #1e2433; }
+QFrame#wsCard QLabel { background: transparent; }
+QLabel#wsCardTitle { font-size: 14px; font-weight: 600; color: #cdd6f4; }
+QLabel#wsCardDesc { font-size: 12px; color: #a6adc8; }
+QLabel#wsSectionTitle { font-size: 12px; font-weight: 600; color: #7f849c; background: transparent; letter-spacing: 1px; }
+QPushButton#wsRecentItem { text-align: left; background: transparent; border: none; border-radius: 8px; padding: 8px 12px; color: #cdd6f4; font-size: 13px; }
+QPushButton#wsRecentItem:hover { background: #313244; }
+QLabel#wsRecentEmpty { color: #6c7086; font-size: 12px; background: transparent; }
+
+QLabel#dashPercent { font-size: 30px; font-weight: 700; background: transparent; color: #a6e3a1; }
+QLabel#dashDetail { font-size: 12px; color: #a6adc8; background: transparent; }
+QFrame#dashCard { background: #181825; border: 1px solid #24243a; border-radius: 10px; }
+QFrame#dashCard QLabel { background: transparent; }
+QLabel#dashValue { font-size: 18px; font-weight: 700; color: #cdd6f4; }
+QLabel#dashLabel { font-size: 11px; color: #7f849c; }
+QProgressBar#dashBar { background: #181825; border: 1px solid #24243a; border-radius: 5px; }
+QProgressBar#dashBar::chunk { background-color: #a6e3a1; border-radius: 4px; }
+QProgressBar#dashTagBar { background: #313244; border: none; border-radius: 3px; }
+QProgressBar#dashTagBar::chunk { background-color: #89b4fa; border-radius: 3px; }
+QLabel#dashTagLabel { font-size: 12px; background: transparent; color: #a6adc8; }
+QLabel#dashTagCount { font-size: 12px; background: transparent; color: #6c7086; }
 """
 
 # Light counterpart of DARK_SS (Catppuccin Latte palette)
@@ -303,6 +329,31 @@ QTextEdit#paneSource { background: #ffffff; color: #5c5f77; border-color: #dce0e
 QTextEdit#paneAi { background: #ffffff; color: #9a6700; border-color: #dce0e8; }
 QLabel#glossaryCheat { color: #9a6700; font-size: 12px; background: #ccd0da; padding: 6px 10px; border-radius: 6px; }
 QCheckBox#chkTlm { color: #6c6f85; font-size: 12px; margin-left: 10px; }
+
+QLabel#wsHeroTitle { font-size: 28px; font-weight: 700; background: transparent; color: #4c4f69; }
+QLabel#wsHeroSub { font-size: 13px; background: transparent; color: #6c6f85; }
+QFrame#wsCard { background: #ffffff; border: 1px solid #dce0e8; border-radius: 12px; }
+QFrame#wsCard:hover { border-color: #1e66f5; background: #f5f8ff; }
+QFrame#wsCard QLabel { background: transparent; }
+QLabel#wsCardTitle { font-size: 14px; font-weight: 600; color: #4c4f69; }
+QLabel#wsCardDesc { font-size: 12px; color: #6c6f85; }
+QLabel#wsSectionTitle { font-size: 12px; font-weight: 600; color: #8c8fa1; background: transparent; letter-spacing: 1px; }
+QPushButton#wsRecentItem { text-align: left; background: transparent; border: none; border-radius: 8px; padding: 8px 12px; color: #4c4f69; font-size: 13px; }
+QPushButton#wsRecentItem:hover { background: #e6e9ef; }
+QLabel#wsRecentEmpty { color: #8c8fa1; font-size: 12px; background: transparent; }
+
+QLabel#dashPercent { font-size: 30px; font-weight: 700; background: transparent; color: #40a02b; }
+QLabel#dashDetail { font-size: 12px; color: #6c6f85; background: transparent; }
+QFrame#dashCard { background: #ffffff; border: 1px solid #dce0e8; border-radius: 10px; }
+QFrame#dashCard QLabel { background: transparent; }
+QLabel#dashValue { font-size: 18px; font-weight: 700; color: #4c4f69; }
+QLabel#dashLabel { font-size: 11px; color: #8c8fa1; }
+QProgressBar#dashBar { background: #ffffff; border: 1px solid #dce0e8; border-radius: 5px; }
+QProgressBar#dashBar::chunk { background-color: #40a02b; border-radius: 4px; }
+QProgressBar#dashTagBar { background: #e6e9ef; border: none; border-radius: 3px; }
+QProgressBar#dashTagBar::chunk { background-color: #1e66f5; border-radius: 3px; }
+QLabel#dashTagLabel { font-size: 12px; background: transparent; color: #5c5f77; }
+QLabel#dashTagCount { font-size: 12px; background: transparent; color: #8c8fa1; }
 """
 
 def detect_system_theme():
@@ -1061,6 +1112,18 @@ class TranslationStudio(QMainWindow):
         self.tlm_dock.hide()
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.tlm_dock)
 
+        # ── Dashboard dock (สถิติการแปลแบบสด) ──
+        self.dashboard_dock = QDockWidget(_("dash_dock_title"), self)
+        self.dashboard_dock.setObjectName("dashboard_dock")
+        self.dashboard_dock.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
+        self.dashboard_dock.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable | QDockWidget.DockWidgetFeature.DockWidgetFloatable)
+        self.dashboard_panel = DashboardPanel(self)
+        self.dashboard_dock.setWidget(self.dashboard_panel)
+        self.dashboard_dock.hide()
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dashboard_dock)
+        self.model.dataChanged.connect(lambda *_: self.dashboard_panel.throttled_refresh())
+        self.model.modelReset.connect(lambda *_: self.dashboard_panel.throttled_refresh())
+
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.glossary_dock)
         self.glossary_dock.hide()
 
@@ -1179,7 +1242,14 @@ class TranslationStudio(QMainWindow):
         root.addWidget(self.table)
         root.setStretchFactor(self.table, 1)
         
-        self.dock_main.setWidget(main_w)
+        # QStackedWidget: 0 = Welcome screen, 1 = ตารางแปล (สลับอัตโนมัติเมื่อเปิดไฟล์)
+        self.view_stack = QStackedWidget()
+        self.welcome_screen = WelcomeScreen(self)
+        self.welcome_screen.open_recent_requested.connect(self.start_import)
+        self.view_stack.addWidget(self.welcome_screen)
+        self.view_stack.addWidget(main_w)
+        self.view_stack.setCurrentIndex(0)
+        self.dock_main.setWidget(self.view_stack)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock_main)
 
         # ── 1. Original Source Dock ──
@@ -1338,6 +1408,8 @@ class TranslationStudio(QMainWindow):
         # Capture default layout state before user config overrides it
         self.default_layout_state = self.saveState()
         self.restore_layout_state()
+        # แดชบอร์ดเริ่มซ่อน — เด้งขึ้นอัตโนมัติเมื่อเปิดไฟล์ครั้งแรกของ session
+        self.dashboard_dock.hide()
 
         # เริ่มที่หน้า Welcome — ไม่โหลด translation.csv อัตโนมัติอีกต่อไป
         # (ผู้ใช้เปิดไฟล์เองผ่านการ์ด/เมนู หรือรายการ "เปิดล่าสุด")
@@ -1595,6 +1667,12 @@ class TranslationStudio(QMainWindow):
         act_zoom_reset.setShortcut("Ctrl+0")
         act_zoom_reset.triggered.connect(self.zoom_reset)
         view_menu.addAction(act_zoom_reset)
+
+        act_welcome = QAction(_("act_show_welcome"), self)
+        act_welcome.setToolTip(_("tooltip_act_show_welcome"))
+        act_welcome.setShortcut("Ctrl+Shift+H")
+        act_welcome.triggered.connect(self.show_welcome)
+        view_menu.addAction(act_welcome)
         
         view_menu.addSeparator()
         
@@ -2601,6 +2679,15 @@ class TranslationStudio(QMainWindow):
         self.setWindowTitle(f'Translation Studio — {GAME_NAME}')
         self.statusBar().showMessage(f'Loaded {count:,} entries from {os.path.basename(self.csv_path)}')
         self.update_progress_stats()
+        # Welcome → ตารางแปล + เปิดแดชบอร์ดครั้งแรก + จำไว้ใน "เปิดล่าสุด"
+        if hasattr(self, 'view_stack'):
+            self.view_stack.setCurrentIndex(1)
+        if hasattr(self, 'dashboard_dock') and not getattr(self, '_dash_auto_shown', False):
+            self.dashboard_dock.show()
+            self._dash_auto_shown = True
+        if hasattr(self, 'dashboard_panel'):
+            self.dashboard_panel.refresh()
+        self._remember_recent(self.csv_path)
 
     def open_merge_dialog(self):
         dlg = MergeTranslatedDialog(self)
@@ -2628,126 +2715,151 @@ class TranslationStudio(QMainWindow):
             "Supported Files (*.csv *.tproj *.lor *.locres *.tex *.bundle *.ttarch2 *.win *.txt *.srt *.vtt *.json *.lang *.pak);;TStudio Projects (*.tproj);;CSV Files (*.csv);;Subtitle Files (*.srt *.vtt);;Locres Files (*.locres *.lor);;LANG Files (*.lang);;Texture Files (*.tex);;Unity Bundles (*.bundle *.txt *.json);;PAK Files (*.pak);;All Files (*.*)"
         )
         if file_path:
-            TStudioCore.set_last_dir(file_path)
-            if file_path.lower().endswith('.tproj'):
-                self.load_project(file_path)
-                return
-            if file_path.lower().endswith('.ttarch2'):
-                self.open_telltale_archive(file_path)
-                return
-            self.statusBar().showMessage(_("loading_file_status"))
-            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+            self.start_import(file_path)
 
-            def run_convert():
-                try:
-                    from tbundle_manager import TBundleManager
-                    if TBundleManager.is_unity_bundle(file_path):
-                        csv_out = TBundleManager.extract_text_to_csv(file_path)
-                        if csv_out:
-                            return csv_out
-                except Exception as e:
-                    print(f"Bundle extract error: {e}")
+    def _remember_recent(self, path):
+        """บันทึก path ลง recent_files ใน config (สำหรับหน้า Welcome)"""
+        try:
+            from tstudio_core import TStudioCore
+            cfg = TStudioCore.load_config()
+            recent = [p for p in cfg.get("recent_files", []) if p != path]
+            recent.insert(0, path)
+            cfg["recent_files"] = recent[:8]
+            TStudioCore.save_config(cfg)
+            if hasattr(self, 'welcome_screen'):
+                self.welcome_screen.refresh_recent()
+        except Exception as e:
+            print(f"Error remembering recent file: {e}")
 
-                try:
-                    if file_path.lower().endswith('.win'):
-                        import sys
-                        sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Core"))
-                        from utmt_handler import UTMTHandler
-                        csv_out = UTMTHandler.extract_strings_to_csv(file_path)
-                        if csv_out:
-                            from tstudio_core import TStudioCore
-                            cfg = TStudioCore.load_config()
-                            cfg["origin_file"] = file_path
-                            TStudioCore.save_config(cfg)
-                            return csv_out
-                except Exception as e:
-                    print(f"UTMT extract error: {e}")
+    def show_welcome(self):
+        """กลับสู่หน้าแรก (ไฟล์ที่เปิดอยู่ยังอยู่ในหน่วยความจำ)"""
+        if hasattr(self, 'view_stack'):
+            self.view_stack.setCurrentIndex(0)
 
-                try:
-                    if file_path.lower().endswith('.txt'):
-                        import re, csv as _csv
-                        with open(file_path, 'r', encoding='utf-8-sig', errors='replace') as f:
-                            raw = f.readlines()
+    def start_import(self, file_path):
+        """นำเข้าไฟล์ (ใช้ร่วมกันทั้งเมนู File และการ์ด/รายการในหน้า Welcome)"""
+        from tstudio_core import TStudioCore
+        TStudioCore.set_last_dir(file_path)
+        if file_path.lower().endswith('.tproj'):
+            self.load_project(file_path)
+            return
+        if file_path.lower().endswith('.ttarch2'):
+            self.open_telltale_archive(file_path)
+            return
+        self.statusBar().showMessage(_("loading_file_status"))
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
-                        # Detect TellTale format: lines starting with "N) " or "N) CHARACTER"
-                        id_pattern = re.compile(r'^(\d+)\)\s*(.*)')
-                        entries = []
-                        i = 0
-                        while i < len(raw):
-                            m = id_pattern.match(raw[i].strip())
-                            if m:
-                                line_id = m.group(1)
-                                character = m.group(2).strip()
-                                text = ''
-                                if i + 1 < len(raw):
-                                    next_line = raw[i + 1].strip()
-                                    if next_line and not id_pattern.match(next_line):
-                                        text = next_line
-                                        i += 1  # consume text line
-                                entries.append((line_id, character, text))
-                            i += 1
+        def run_convert():
+            try:
+                from tbundle_manager import TBundleManager
+                if TBundleManager.is_unity_bundle(file_path):
+                    csv_out = TBundleManager.extract_text_to_csv(file_path)
+                    if csv_out:
+                        return csv_out
+            except Exception as e:
+                print(f"Bundle extract error: {e}")
 
-                        # Need at least 10 entries to be confident it's TellTale format
-                        if len(entries) >= 5:
-                            import os as _os
-                            base = _os.path.splitext(file_path)[0]
-                            csv_out = base + '_telltale.csv'
-                            with open(csv_out, 'w', encoding='utf-8-sig', newline='') as f:
-                                writer = _csv.writer(f)
-                                writer.writerow([_("col_id"), _("col_source"), _("col_translation"), 'AI_Reference'])
-                                for (lid, char, text) in entries:
-                                    if text:  # skip empty lines
-                                        row_id = f"{lid}"
-                                        if char:
-                                            row_id = f"{lid}_{char.replace(' ', '_')}"
-                                        writer.writerow([row_id, text, '', char])
-                            return csv_out
-                except Exception as e:
-                    print(f"TellTale txt parse error: {e}")
+            try:
+                if file_path.lower().endswith('.win'):
+                    import sys
+                    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Core"))
+                    from utmt_handler import UTMTHandler
+                    csv_out = UTMTHandler.extract_strings_to_csv(file_path)
+                    if csv_out:
+                        from tstudio_core import TStudioCore
+                        cfg = TStudioCore.load_config()
+                        cfg["origin_file"] = file_path
+                        TStudioCore.save_config(cfg)
+                        return csv_out
+            except Exception as e:
+                print(f"UTMT extract error: {e}")
 
-                # Hardcoded JSON parser removed to allow CustomParsers plugin system to handle .json
+            try:
+                if file_path.lower().endswith('.txt'):
+                    import re, csv as _csv
+                    with open(file_path, 'r', encoding='utf-8-sig', errors='replace') as f:
+                        raw = f.readlines()
 
-                return file_converter.auto_convert_to_csv(file_path, None) # Don't pass UI to thread
+                    # Detect TellTale format: lines starting with "N) " or "N) CHARACTER"
+                    id_pattern = re.compile(r'^(\d+)\)\s*(.*)')
+                    entries = []
+                    i = 0
+                    while i < len(raw):
+                        m = id_pattern.match(raw[i].strip())
+                        if m:
+                            line_id = m.group(1)
+                            character = m.group(2).strip()
+                            text = ''
+                            if i + 1 < len(raw):
+                                next_line = raw[i + 1].strip()
+                                if next_line and not id_pattern.match(next_line):
+                                    text = next_line
+                                    i += 1  # consume text line
+                            entries.append((line_id, character, text))
+                        i += 1
 
-            def on_success(converted_path):
-                QApplication.restoreOverrideCursor()
-                if converted_path:
-                    self.project_path = None
-                    self.setWindowTitle("Translation Studio - Unsaved Project")
-                    from tstudio_core import TFormatManager
-                    if not TFormatManager.is_standard_csv(converted_path):
-                        headers = TFormatManager.get_headers(converted_path)
-                        from tstudio_ui_shared import SmartImportDialog
-                        dlg = SmartImportDialog(headers, self)
-                        if dlg.exec() == QDialog.DialogCode.Accepted:
-                            mapping = dlg.get_mapping()
-                            try:
-                                converted_path = TFormatManager.format_to_standard(converted_path, mapping)
-                                QMessageBox.information(self, _("tformat_title"), _("tformat_formatted_msg"))
-                            except Exception as e:
-                                QMessageBox.critical(self, _("error_title"), f"Failed to format: {e}")
-                                return
-                        else:
+                # Need at least 10 entries to be confident it's TellTale format
+                if len(entries) >= 5:
+                    import os as _os
+                    base = _os.path.splitext(file_path)[0]
+                    csv_out = base + '_telltale.csv'
+                    with open(csv_out, 'w', encoding='utf-8-sig', newline='') as f:
+                        writer = _csv.writer(f)
+                        writer.writerow([_("col_id"), _("col_source"), _("col_translation"), 'AI_Reference'])
+                        for (lid, char, text) in entries:
+                            if text:  # skip empty lines
+                                row_id = f"{lid}"
+                                if char:
+                                    row_id = f"{lid}_{char.replace(' ', '_')}"
+                                writer.writerow([row_id, text, '', char])
+                    return csv_out
+            except Exception as e:
+                print(f"TellTale txt parse error: {e}")
+
+            # Hardcoded JSON parser removed to allow CustomParsers plugin system to handle .json
+
+            return file_converter.auto_convert_to_csv(file_path, None) # Don't pass UI to thread
+
+        def on_success(converted_path):
+            QApplication.restoreOverrideCursor()
+            if converted_path:
+                self.project_path = None
+                self.setWindowTitle("Translation Studio - Unsaved Project")
+                from tstudio_core import TFormatManager
+                if not TFormatManager.is_standard_csv(converted_path):
+                    headers = TFormatManager.get_headers(converted_path)
+                    from tstudio_ui_shared import SmartImportDialog
+                    dlg = SmartImportDialog(headers, self)
+                    if dlg.exec() == QDialog.DialogCode.Accepted:
+                        mapping = dlg.get_mapping()
+                        try:
+                            converted_path = TFormatManager.format_to_standard(converted_path, mapping)
+                            QMessageBox.information(self, _("tformat_title"), _("tformat_formatted_msg"))
+                        except Exception as e:
+                            QMessageBox.critical(self, _("error_title"), f"Failed to format: {e}")
                             return
-                    self.csv_path = converted_path
+                    else:
+                        return
+                self.csv_path = converted_path
 
-                    # Save origin_file in config!
-                    from tstudio_core import TStudioCore
-                    cfg = TStudioCore.load_config()
-                    cfg["origin_file"] = file_path
-                    TStudioCore.save_config(cfg)
+                # Save origin_file in config!
+                from tstudio_core import TStudioCore
+                cfg = TStudioCore.load_config()
+                cfg["origin_file"] = file_path
+                TStudioCore.save_config(cfg)
+                self._remember_recent(file_path)
 
-                    self._load_csv()
+                self._load_csv()
 
-            def on_error(err):
-                QApplication.restoreOverrideCursor()
-                QMessageBox.critical(self, _("file_error_title"), f"Failed to open or convert file:\n{err}")
+        def on_error(err):
+            QApplication.restoreOverrideCursor()
+            QMessageBox.critical(self, _("file_error_title"), f"Failed to open or convert file:\n{err}")
 
-            worker = ApiWorker(run_convert)
-            forwarder = ThreadSafeWorkerSignalsForwarder(on_success, on_error, self)
-            worker.signals.finished.connect(forwarder.handle_finished)
-            worker.signals.error.connect(forwarder.handle_error)
-            self.threadpool.start(worker)
+        worker = ApiWorker(run_convert)
+        forwarder = ThreadSafeWorkerSignalsForwarder(on_success, on_error, self)
+        worker.signals.finished.connect(forwarder.handle_finished)
+        worker.signals.error.connect(forwarder.handle_error)
+        self.threadpool.start(worker)
 
 
     def open_telltale_archive(self, file_path=None):

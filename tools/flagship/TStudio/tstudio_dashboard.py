@@ -1,155 +1,250 @@
+# -*- coding: utf-8 -*-
+"""TStudio Welcome Screen + Live Dashboard
+หน้าแรก (Welcome) แสดงตอนยังไม่เปิดไฟล์ · แดชบอร์ดเป็น dock ที่อัปเดตสถิติการแปลแบบสด
+"""
 import os
-import csv
+from collections import Counter
+
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QPushButton, 
-    QLabel, QTableWidget, QTableWidgetItem, QHeaderView, 
-    QFileDialog, QProgressBar, QMessageBox, QAbstractItemView
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton,
+    QFrame, QProgressBar, QSizePolicy
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
-from tstudio_core import TStudioCore
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 
-class ProjectDashboardDialog(QDialog):
-    def __init__(self, parent=None):
+try:
+    from tstudio_i18n import _
+except ImportError:
+    def _(key, **kw):
+        return key
+
+try:
+    from tstudio_core import TStudioCore
+except ImportError:
+    import sys
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Core')))
+    from tstudio_core import TStudioCore
+
+
+class _ActionCard(QFrame):
+    """การ์ด quick action แบบคลิกได้ทั้งใบ"""
+
+    def __init__(self, icon, title, desc, on_click, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Project Dashboard")
-        self.resize(800, 500)
-        self.setStyleSheet("""
-            QDialog { background-color: #1e1e2e; color: #cdd6f4; }
-            QLabel { color: #cdd6f4; font-size: 14px; font-weight: bold; }
-            QPushButton { background-color: #89b4fa; color: #1e1e2e; font-weight: bold; padding: 6px 12px; border-radius: 4px; }
-            QPushButton:hover { background-color: #b4befe; }
-            QTableWidget { background-color: #181825; color: #cdd6f4; gridline-color: #313244; border: 1px solid #313244; }
-            QHeaderView::section { background-color: #313244; color: #cdd6f4; font-weight: bold; padding: 4px; border: 1px solid #45475a; }
-            QProgressBar { text-align: center; color: #1e1e2e; font-weight: bold; border: 1px solid #313244; border-radius: 4px; background-color: #313244; }
-            QProgressBar::chunk { background-color: #a6e3a1; border-radius: 4px; }
-        """)
+        self.setObjectName("wsCard")
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self._on_click = on_click
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(18, 16, 18, 16)
+        lay.setSpacing(4)
+        lbl_t = QLabel(f"{icon}  {title}")
+        lbl_t.setObjectName("wsCardTitle")
+        lbl_d = QLabel(desc)
+        lbl_d.setObjectName("wsCardDesc")
+        lbl_d.setWordWrap(True)
+        lay.addWidget(lbl_t)
+        lay.addWidget(lbl_d)
 
-        layout = QVBoxLayout(self)
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton and self._on_click:
+            self._on_click()
 
-        # Top Bar
-        top_layout = QHBoxLayout()
-        self.lbl_folder = QLabel("No folder selected.")
-        self.lbl_folder.setStyleSheet("font-weight: normal; font-size: 12px; color: #a6adc8;")
-        btn_select = QPushButton(_("btn_select_folder"))
-        btn_select.setToolTip(_("tooltip_select"))
-        btn_select.clicked.connect(self.select_folder)
-        
-        top_layout.addWidget(btn_select)
-        top_layout.addWidget(self.lbl_folder, 1)
-        layout.addLayout(top_layout)
 
-        # Summary
-        self.lbl_summary = QLabel("Total Progress: 0% (0 / 0 rows)")
-        layout.addWidget(self.lbl_summary)
-        
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setFixedHeight(20)
-        layout.addWidget(self.progress_bar)
+class WelcomeScreen(QWidget):
+    """หน้าแรก: hero + quick actions + ไฟล์ที่เปิดล่าสุด"""
 
-        # Table
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["Filename", "Total Rows", "Translated", "Completion"])
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        layout.addWidget(self.table)
+    open_recent_requested = pyqtSignal(str)
 
-        # Bottom Bar
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addStretch()
-        btn_close = QPushButton(_("btn_close"))
-        btn_close.setToolTip(_("tooltip_close"))
-        btn_close.setStyleSheet("background-color: #45475a; color: #cdd6f4;")
-        btn_close.clicked.connect(self.close)
-        bottom_layout.addWidget(btn_close)
-        layout.addLayout(bottom_layout)
+    def __init__(self, studio, parent=None):
+        super().__init__(parent)
+        self.studio = studio
 
-    def select_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Project Folder containing CSV files")
-        if folder:
-            self.lbl_folder.setText(f"Folder: {folder}")
-            self.scan_folder(folder)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        scroll_body = QWidget()
+        root = QVBoxLayout(scroll_body)
+        root.setContentsMargins(48, 40, 48, 40)
+        root.setSpacing(22)
 
-    def scan_folder(self, folder):
-        self.table.setRowCount(0)
-        total_rows = 0
-        total_translated = 0
-        
-        csv_files = [f for f in os.listdir(folder) if f.lower().endswith('.csv')]
-        if not csv_files:
-            QMessageBox.information(self, "Dashboard", "No CSV files found in the selected folder.")
+        lbl_hero = QLabel("✦ TStudio")
+        lbl_hero.setObjectName("wsHeroTitle")
+        lbl_sub = QLabel(_("ws_hero_sub"))
+        lbl_sub.setObjectName("wsHeroSub")
+        root.addWidget(lbl_hero)
+        root.addWidget(lbl_sub)
+
+        grid = QGridLayout()
+        grid.setSpacing(14)
+        cards = [
+            ("📂", _("ws_card_open_title"), _("ws_card_open_desc"), studio.new_project_from_file),
+            ("🗂", _("ws_card_project_title"), _("ws_card_project_desc"), studio.open_project_dialog),
+            ("🔀", _("ws_card_merge_title"), _("ws_card_merge_desc"), studio.open_merge_dialog),
+            ("🧩", _("ws_card_plugin_title"), _("ws_card_plugin_desc"), studio.open_plugin_manager),
+        ]
+        for i, (icon, title, desc, fn) in enumerate(cards):
+            grid.addWidget(_ActionCard(icon, title, desc, fn), i // 2, i % 2)
+        root.addLayout(grid)
+
+        lbl_recent = QLabel(_("ws_section_recent"))
+        lbl_recent.setObjectName("wsSectionTitle")
+        root.addWidget(lbl_recent)
+
+        self.recent_container = QVBoxLayout()
+        self.recent_container.setSpacing(2)
+        root.addLayout(self.recent_container)
+        root.addStretch(1)
+
+        from PyQt6.QtWidgets import QScrollArea
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setWidget(scroll_body)
+        outer.addWidget(scroll)
+
+        self.refresh_recent()
+
+    def refresh_recent(self):
+        while self.recent_container.count():
+            item = self.recent_container.takeAt(0)
+            w = item.widget()
+            if w:
+                w.deleteLater()
+
+        files = []
+        try:
+            cfg = TStudioCore.load_config()
+            files = [f for f in cfg.get("recent_files", []) if os.path.exists(f)][:6]
+        except Exception:
+            pass
+
+        if not files:
+            empty = QLabel(_("ws_recent_empty"))
+            empty.setObjectName("wsRecentEmpty")
+            self.recent_container.addWidget(empty)
             return
-            
-        import re
-        thai_pattern = re.compile(r'[ก-๙เแไใโ]')
-            
-        for file in csv_files:
-            filepath = os.path.join(folder, file)
-            try:
-                # Try UTF-8-sig first
-                enc = 'utf-8-sig'
-                with open(filepath, 'r', encoding=enc, errors='ignore') as f:
-                    reader = csv.reader(f)
-                    try:
-                        headers = next(reader)
-                        
-                        col_trans = 2 # Assuming ID, Source, Trans, AI
-                        for i, h in enumerate(headers):
-                            if 'trans' in h.lower() or 'thai' in h.lower():
-                                col_trans = i
-                                break
-                                
-                        file_total = 0
-                        file_trans = 0
-                        for row in reader:
-                            if len(row) > 1: # At least ID and Source
-                                file_total += 1
-                                if len(row) > col_trans and row[col_trans].strip() and thai_pattern.search(row[col_trans]):
-                                    file_trans += 1
-                                    
-                        total_rows += file_total
-                        total_translated += file_trans
-                        
-                        completion = (file_trans / file_total * 100) if file_total > 0 else 0
-                        
-                        r = self.table.rowCount()
-                        self.table.insertRow(r)
-                        self.table.setItem(r, 0, QTableWidgetItem(file))
-                        
-                        i_total = QTableWidgetItem(f"{file_total:,}")
-                        i_total.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                        self.table.setItem(r, 1, i_total)
-                        
-                        i_trans = QTableWidgetItem(f"{file_trans:,}")
-                        i_trans.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                        self.table.setItem(r, 2, i_trans)
-                        
-                        i_comp = QTableWidgetItem(f"{completion:.1f}%")
-                        i_comp.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                        if completion >= 100:
-                            i_comp.setForeground(QColor('#a6e3a1')) # Green
-                        elif completion == 0:
-                            i_comp.setForeground(QColor('#f38ba8')) # Red
-                        else:
-                            i_comp.setForeground(QColor('#f9e2af')) # Yellow
-                        self.table.setItem(r, 3, i_comp)
-                        
-                    except StopIteration:
-                        pass
-            except Exception as e:
-                print(f"Error scanning {file}: {e}")
-                
-        # Update summary
-        if total_rows > 0:
-            total_completion = (total_translated / total_rows) * 100
-        else:
-            total_completion = 0
-            
-        self.lbl_summary.setText(f"Total Progress: {total_completion:.1f}% ({total_translated:,} / {total_rows:,} rows)")
-        self.progress_bar.setValue(int(total_completion))
+
+        for path in files:
+            btn = QPushButton(f"📄  {os.path.basename(path)}")
+            btn.setObjectName("wsRecentItem")
+            btn.setToolTip(path)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.clicked.connect(lambda _=False, p=path: self.open_recent_requested.emit(p))
+            self.recent_container.addWidget(btn)
+
+
+class _StatCard(QFrame):
+    def __init__(self, label_key, parent=None):
+        super().__init__(parent)
+        self.setObjectName("dashCard")
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(14, 10, 14, 10)
+        lay.setSpacing(2)
+        self.lbl_value = QLabel("0")
+        self.lbl_value.setObjectName("dashValue")
+        self.lbl_label = QLabel(_(label_key))
+        self.lbl_label.setObjectName("dashLabel")
+        lay.addWidget(self.lbl_value)
+        lay.addWidget(self.lbl_label)
+
+
+class DashboardPanel(QWidget):
+    """แดชบอร์ดสถิติการแปล — อัปเดตสดจาก CsvTableModel"""
+
+    def __init__(self, studio, parent=None):
+        super().__init__(parent)
+        self.studio = studio
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(16, 14, 16, 14)
+        root.setSpacing(14)
+
+        self.lbl_percent = QLabel("0%")
+        self.lbl_percent.setObjectName("dashPercent")
+        self.lbl_detail = QLabel(_("dash_no_file"))
+        self.lbl_detail.setObjectName("dashDetail")
+        self.lbl_detail.setWordWrap(True)
+        root.addWidget(self.lbl_percent)
+        root.addWidget(self.lbl_detail)
+
+        self.bar = QProgressBar()
+        self.bar.setObjectName("dashBar")
+        self.bar.setRange(0, 100)
+        self.bar.setValue(0)
+        self.bar.setTextVisible(False)
+        self.bar.setFixedHeight(10)
+        root.addWidget(self.bar)
+
+        cards_row = QHBoxLayout()
+        cards_row.setSpacing(10)
+        self.card_total = _StatCard("dash_total")
+        self.card_done = _StatCard("dash_translated")
+        self.card_todo = _StatCard("dash_untranslated")
+        cards_row.addWidget(self.card_total)
+        cards_row.addWidget(self.card_done)
+        cards_row.addWidget(self.card_todo)
+        root.addLayout(cards_row)
+
+        lbl_tags = QLabel(_("dash_tag_breakdown"))
+        lbl_tags.setObjectName("wsSectionTitle")
+        root.addWidget(lbl_tags)
+
+        self.tag_container = QVBoxLayout()
+        self.tag_container.setSpacing(6)
+        root.addLayout(self.tag_container)
+        root.addStretch(1)
+
+        self._refresh_timer = QTimer(self)
+        self._refresh_timer.setSingleShot(True)
+        self._refresh_timer.setInterval(250)
+        self._refresh_timer.timeout.connect(self.refresh)
+
+        self.refresh()
+
+    def throttled_refresh(self):
+        self._refresh_timer.start()
+
+    def refresh(self):
+        data = getattr(self.studio, "model", None)._data if hasattr(self.studio, "model") else []
+        total = len(data)
+        done = sum(1 for r in data if str(r.get("trans", "")).strip())
+        todo = total - done
+        pct = (done / total * 100) if total else 0
+
+        self.lbl_percent.setText(f"{pct:.0f}%")
+        name = os.path.basename(self.studio.csv_path) if getattr(self.studio, "csv_path", "") else ""
+        self.lbl_detail.setText(f"{name} — {done:,} / {total:,} {_('dash_rows')}" if total else _("dash_no_file"))
+        self.bar.setValue(int(pct))
+        self.card_total.lbl_value.setText(f"{total:,}")
+        self.card_done.lbl_value.setText(f"{done:,}")
+        self.card_todo.lbl_value.setText(f"{todo:,}")
+
+        while self.tag_container.count():
+            item = self.tag_container.takeAt(0)
+            w = item.widget()
+            if w:
+                w.deleteLater()
+
+        if not total:
+            return
+
+        tags = Counter(r.get("tag", "") for r in data if r.get("tag", "").strip() and r["tag"] != "❓")
+        for tag, count in tags.most_common(6):
+            row = QHBoxLayout()
+            row.setSpacing(8)
+            lbl = QLabel(tag)
+            lbl.setObjectName("dashTagLabel")
+            lbl.setFixedWidth(86)
+            bar = QProgressBar()
+            bar.setObjectName("dashTagBar")
+            bar.setRange(0, total)
+            bar.setValue(count)
+            bar.setTextVisible(False)
+            bar.setFixedHeight(6)
+            cnt = QLabel(f"{count:,}")
+            cnt.setObjectName("dashTagCount")
+            row.addWidget(lbl)
+            row.addWidget(bar, 1)
+            row.addWidget(cnt)
+            holder = QWidget()
+            holder.setLayout(row)
+            self.tag_container.addWidget(holder)
