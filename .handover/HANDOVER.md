@@ -92,14 +92,18 @@ python development/tests/boot_test.py
 
 ## 8. งานค้าง / ข้อเสนอ
 
-1. **Propagate PUA fix ไป TPUA standalone** — `tools/flagship/TPUA/Core/tpua_engine.py` มีบั๊ก
-   mapping เดียวกันเป๊ะ ยังไม่ได้แก้
+1. ~~**Propagate PUA fix ไป TPUA standalone**~~ ✅ **เสร็จ (31/10/2026 · 17f2142)** พร้อมแก้ความเข้าใจผิดเดิม:
+   TPUA standalone **ไม่เคยมีบั๊ก no-op เหมือน Core** (มี guard `len==1` อยู่แล้วทั้งไฟล์) — สิ่งที่เจอจริงคือ
+   latent bug ชื่อไฟล์: โค้ดหา `mapping.json` แต่ไฟล์จริงชื่อ `Mapping.json` ซึ่งเงียบหายบน filesystem
+   case-sensitive (Linux/APFS บางแบบ) → แก้ให้ case-tolerant แล้ว (round-trip ผ่านครบ 2,208 mappings)
 2. **เชื่อม QA checker** — fork `AeyXD/game-localization-qa` มี `checker/thai_qa.py` (CLI พร้อมใช้)
    เสียบเป็นขั้น QA หลัง `silent_save_csv` ก่อน `deploy_to_game` ได้เลย — ช่องว่างนี้ยังไม่มีใครเติม
+   (**สเปกพร้อม + base นิ่งหลัง merge 2.2 แล้ว**: `../docs/spec-qa-bridge.md`)
 3. ทดสอบ AI แปลจริงบน macOS (ต้องใส่ API key ก่อน — โค้ดพร้อมแล้ว)
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
-5. แจ้งบั๊ก/ส่ง PR กลับ upstream (`memolyviza2012-max/THub-Launcher`) ได้ โดยเฉพาะ fix ข้อ 2-3
-   ที่เป็นบั๊กบน Windows ด้วย
+5. แจ้งบั๊ก/ส่ง PR กลับ upstream (`memolyviza2012-max/THub-Launcher`): บั๊ก PUA ของ Core (c431d7b)
+   **ยังมีอยู่ใน upstream 2.2** — เป็น PR candidate ที่ชัดเจนที่สุด
+6. **คืนระบบธีม 3 โหมด** — เขียน Light variant ของ MASTERPIECE_SS (ต้นแบบ: commits e64fc8e/529d8b9)
 
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 
