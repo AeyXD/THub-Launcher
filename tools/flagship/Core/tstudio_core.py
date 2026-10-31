@@ -162,8 +162,15 @@ class TStudioCore:
                 }
             }
         }
+        # Resolve the prompts path first; if the project path is invalid (e.g. a file
+        # was passed instead of a directory) fall back to the Core-wide default
+        # instead of crashing with UnboundLocalError later.
         try:
             target_path = cls.get_prompts_path()
+        except Exception as e:
+            print(f"Invalid project path for profiles ({e}); falling back to {PROMPTS_PATH}")
+            target_path = PROMPTS_PATH
+        try:
             if os.path.exists(target_path):
                 with open(target_path, 'r', encoding='utf-8') as f:
                     loaded = json.load(f)
