@@ -9,6 +9,7 @@
 """
 import os
 import csv
+import json
 import subprocess
 import sys
 
@@ -41,23 +42,8 @@ def find_checker(cfg):
     return p if p and os.path.isfile(p) else None
 
 
-def run_checker(checker_path, csv_path, report_path, fix=False):
-    """รัน checker (dry-run default หรือ --fix) คืน (ok, rows, summary_text)"""
-    cmd = [
-        sys.executable, checker_path, csv_path,
-        "--csv", "--source-col", "2", "--target-col", "3",
-        "--report", report_path, "--quiet",
-    ]
-    if fix:
-        cmd.append("--fix")
-    try:
-        proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=600,
-            creationflags=0x08000000 if os.name == "nt" else 0
-        )
-    except Exception as e:
-        return False, [], str(e)
-
+def _read_audit_rows(report_path):
+    """อ่านตารางผลจาก audit CSV (Title Case keys ตรง schema ระยะแรก)"""
     rows = []
     try:
         if os.path.exists(report_path):
@@ -65,7 +51,11 @@ def run_checker(checker_path, csv_path, report_path, fix=False):
                 rows = [r for r in csv.DictReader(f)]
     except Exception as e:
         print(f"QA bridge: อ่าน audit CSV ไม่ได้ — {e}")
+    return rows
 
+
+def _text_summary(proc):
+    """สรุปแบบระยะแรก: หาบรรทัด 'รวม: ...' จาก stdout ของ checker เก่า"""
     out = (proc.stdout or "").strip()
     lines = [ln for ln in out.splitlines() if ln.strip()]
     summary = ""
@@ -77,7 +67,66 @@ def run_checker(checker_path, csv_path, report_path, fix=False):
         summary = lines[-1]
     if not summary:
         summary = (proc.stderr or "").strip()
-    return proc.returncode in (0, 1), rows, summary
+    return summary
+
+
+def _json_summary(auto_fixed, flagged):
+    """สรุป dialog จากตัวเลข JSON ผ่าน i18n (ระยะสอง — ไม่ parse stdout แล้ว)"""
+    try:
+        return _("qa_summary_total", n=auto_fixed, m=flagged)
+    except Exception:
+        return f"รวม: แก้อัตโนมัติ {auto_fixed} จุด | แจ้งเตือนอีก {flagged} จุด"
+
+
+def run_checker(checker_path, csv_path, report_path, fix=False):
+    """รัน checker (dry-run default หรือ --fix) คืน (ok, rows, summary, autofix_count)
+
+    ระยะสอง (docs/spec-qa-bridge.md): ใส่ --json แล้วใช้ JSON เป็นแหล่งความจริง —
+    auto_fixed/flagged ตรง ๆ, สรุปสร้างจาก i18n, report path จาก JSON
+    ถ้า checker เก่าไม่รู้จัก --json (ตายด้วย argparse exit ≥2 หรือ stdout ไม่ใช่ JSON)
+    จะรันซ้ำครั้งเดียวแบบไม่มี --json แล้วใช้เส้นทาง text parse + audit CSV เดิม"""
+    base_cmd = [
+        sys.executable, checker_path, csv_path,
+        "--csv", "--source-col", "2", "--target-col", "3",
+        "--report", report_path, "--quiet",
+    ]
+    if fix:
+        base_cmd.append("--fix")
+    flags = 0x08000000 if os.name == "nt" else 0
+
+    def _run(cmd):
+        return subprocess.run(
+            cmd, capture_output=True, text=True, timeout=600, creationflags=flags
+        )
+
+    try:
+        proc = _run(base_cmd + ["--json"])
+    except Exception as e:
+        return False, [], str(e), 0
+
+    data = None
+    try:
+        parsed = json.loads(proc.stdout or "")
+        if isinstance(parsed, dict):
+            data = parsed
+    except (ValueError, TypeError):
+        pass
+
+    if data is not None:
+        auto_fixed = int(data.get("auto_fixed") or 0)
+        flagged = int(data.get("flagged") or 0)
+        ok = proc.returncode in (0, 1)
+        # ตารางผลยังอ่านจาก audit CSV (ตามข้อก. ของสเปก — เปลี่ยนน้อยที่สุด)
+        rows = _read_audit_rows(data.get("report") or report_path)
+        return ok, rows, _json_summary(auto_fixed, flagged), auto_fixed
+
+    # checker เก่า (ไม่รู้จัก --json) หรือ stdout ไม่ใช่ JSON → รันซ้ำครั้งเดียวแบบไม่มี --json
+    try:
+        proc = _run(base_cmd)
+    except Exception as e:
+        return False, [], str(e), 0
+    summary = _text_summary(proc)
+    return proc.returncode in (0, 1), _read_audit_rows(report_path), summary, parse_autofix_count(summary)
 
 
 def parse_autofix_count(summary_text):
@@ -92,7 +141,7 @@ class QaResultDialog(QDialog):
 
     fix_requested = pyqtSignal()
 
-    def __init__(self, rows, summary_text, report_path, parent=None):
+    def __init__(self, rows, summary_text, report_path, parent=None, autofix_count=None):
         super().__init__(parent)
         self.setWindowTitle(_("qa_title"))
         self.resize(760, 480)
@@ -141,8 +190,8 @@ class QaResultDialog(QDialog):
         btn_row.addWidget(self.btn_close)
         lay.addLayout(btn_row)
 
-        # ปุ่มแก้อัตโนมัติ (แสดงเฉพาะ dry-run ที่มีจุดที่ fix ได้)
-        autofix = parse_autofix_count(summary_text)
+        # ปุ่มแก้อัตโนมัติ — จำนวนมาจาก JSON (ระยะสอง) หรือ parse จากสรุป (checker เก่า)
+        autofix = autofix_count if autofix_count is not None else parse_autofix_count(summary_text)
         if autofix > 0:
             btn_fix = QPushButton(_("qa_autofix", n=autofix))
             btn_fix.setObjectName("btnSave")

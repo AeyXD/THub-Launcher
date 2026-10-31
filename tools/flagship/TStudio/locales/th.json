@@ -490,6 +490,7 @@
   "qa_need_checker": "ยังไม่ได้ตั้งค่าตัวตรวจ QA\n\nไปที่ Tools → Settings → ช่อง QA Checker แล้วชี้ path ไปยัง checker/thai_qa.py ของ repo game-localization-qa",
   "qa_no_file": "ยังไม่มีไฟล์ที่เปิดอยู่ — เปิดไฟล์ก่อนรัน QA",
   "qa_run_error": "รันตัวตรวจ QA ไม่สำเร็จ:\n{msg}",
+  "qa_summary_total": "รวม: แก้อัตโนมัติ {n} จุด | แจ้งเตือนอีก {m} จุดที่ต้องตรวจด้วยคน/AI",
   "qa_no_issues": "ไม่พบปัญหา — คำแปลสะอาด ✓",
   "qa_open_report": "เปิดรายงานฉบับเต็ม",
   "qa_autofix": "แก้อัตโนมัติทั้งหมด ({n} จุด)",

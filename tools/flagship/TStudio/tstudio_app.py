@@ -5355,7 +5355,7 @@ class TranslationStudio(QMainWindow):
             pass
         report_path = os.path.join(os.path.dirname(os.path.abspath(self.csv_path)), "qa_audit.csv")
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        ok, rows, summary = run_checker(checker, self.csv_path, report_path, fix=fix)
+        ok, rows, summary, autofix = run_checker(checker, self.csv_path, report_path, fix=fix)
         QApplication.restoreOverrideCursor()
         if not ok:
             QMessageBox.critical(self, _("qa_title"), _("qa_run_error", msg=summary))
@@ -5367,7 +5367,7 @@ class TranslationStudio(QMainWindow):
                 self.dashboard_panel.refresh()
             QMessageBox.information(self, _("qa_title"), f"{_('qa_fix_done')}\n\n{summary}")
             return
-        dlg = QaResultDialog(rows, summary, report_path, self)
+        dlg = QaResultDialog(rows, summary, report_path, self, autofix_count=autofix)
         dlg.fix_requested.connect(lambda: self.run_qa_check(fix=True))
         dlg.exec()
 
@@ -7502,7 +7502,7 @@ class TranslationStudio(QMainWindow):
                         self.silent_save_csv()
                         gate_report = os.path.join(os.path.dirname(os.path.abspath(self.csv_path)), "qa_audit.csv")
                         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-                        gate_ok, gate_rows, _gs = run_checker(checker, self.csv_path, gate_report, fix=False)
+                        gate_ok, gate_rows, _gs, _ga = run_checker(checker, self.csv_path, gate_report, fix=False)
                         QApplication.restoreOverrideCursor()
                         n_err = sum(1 for r in gate_rows if (r.get("Severity") or "").strip().lower() == "error")
                         if gate_ok and n_err:

@@ -490,6 +490,7 @@
   "qa_need_checker": "QA checker is not configured yet.\n\nOpen Tools → Settings → QA Checker and point it to checker/thai_qa.py in the game-localization-qa repo",
   "qa_no_file": "No file open — open a file before running QA",
   "qa_run_error": "Failed to run the QA checker:\n{msg}",
+  "qa_summary_total": "Total: {n} auto-fixable | {m} flagged for human/AI review",
   "qa_no_issues": "No issues found — translation is clean ✓",
   "qa_open_report": "Open full report",
   "qa_autofix": "Auto-fix all ({n})",
