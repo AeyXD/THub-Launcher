@@ -67,14 +67,16 @@ python development/tests/boot_test.py
 # หรือทดสอบธีมเฉพาะ: QT_QPA_PLATFORM=offscreen python <สคริปต์>
 ```
 
-## 6. สถานะ Git — ✅ commit แล้วเป็น 4 ชุดตามแผน (2026-10-30 บ่าย)
+## 6. สถานะ Git — ✅ commit 4 ชุด + ✅ merge upstream 2.2 แล้ว (31/10/2026)
 
-- `fix:` (c431d7b) บั๊กสองตัว · `feat:` ธีม+UI facelift (e64fc8e) · `feat:` welcome+dashboard (529d8b9) · `docs:` (31d853f)
-  — **ยังไม่ push** (ตามกติกา push เฉพาะ origin และเมื่อเจ้าของสั่ง) · working tree สะอาด
-- `prompts.json` runtime state ถูก discard ก่อน commit แล้ว · `.DS_Store` เพิ่มใน .gitignore
-- การแยก feat เป็น 2 commits ทำโดยสร้าง "รุ่นกลาง theme-only" (ถอดส่วน welcome/dashboard ออกชั่วคราว
-  ก่อน commit แล้วคืนไฟล์เต็ม) — ทุก commit ผ่าน syntax/offscreen ตรวจ และ boot test 9/9 บนรุ่นสุดท้าย
-- **ขั้นต่อไป:** merge `upstream/main` (THub 2.2) ตาม briefing `../docs/merge-prep-thub22.md` — เตรียมแก้ conflict ใน 5 ไฟล์ที่ทับซ้อน
+- งาน fork: `fix:` c431d7b · `feat:` ธีม e64fc8e · `feat:` dashboard 529d8b9 · `docs:` 31d853f
+- **merge 2.2:** ccf227a — ยอมรับ UI shell "Masterpiece" ของ upstream เป็นฐาน แล้ว graft ของเรากลับ:
+  Welcome เป็นหน้า 0 ของ workspace_stack (โหมด CAT/TRun คลายเป็น 1/2) · Dashboard เป็น dock ขวา ·
+  recent files + Ctrl+Shift+H · กฎ QSS `#ws*`/`#dash*` ผนวกท้าย MASTERPIECE_SS · ถอด auto-load
+  `translation.csv` ที่ upstream คืนมาอีกครั้ง · `load_profiles` ใช้ของ upstream (multi-path — ดีกว่า guard เดิม)
+- ⚠️ **ธีม 3 โหมดถูกพักไว้**: MASTERPIECE_SS เป็นมืดคงที่ การคืนระบบธีมต้องเขียน Light variant
+  ของ MASTERPIECE_SS ก่อน (ต้นแบบ + logic อยู่ใน commits e64fc8e/529d8b9)
+- ทดสอบหลัง merge: boot_test **9/9** + เปิด GUI จริงบน macOS ผ่าน · สถานะ: `main [ahead 12]` **ยังไม่ push**
 
 ## 7. การตัดสินใจออกแบบที่ควรรู้
 

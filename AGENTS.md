@@ -6,9 +6,10 @@
 
 ```
 main.py                         ← THub Launcher (CustomTkinter) — อย่าสับสนกับ TStudio
-tools/flagship/TStudio/         ← engine แปลหลัก (PyQt6)
-  tstudio_app.py                ← หน้าต่างหลัก + ธีม (DARK_SS/LIGHT_SS) + Welcome/Dashboard
-  tstudio_dashboard.py          ← WelcomeScreen + DashboardPanel
+tools/flagship/TStudio/         ← engine แปลหลัก (PyQt6) — หลัง merge 2.2 ใช้ UI shell "Masterpiece"
+  tstudio_app.py                ← หน้าต่างหลัก: workspace_stack (0=Welcome · 1=CAT 3 คอลัมน์ · 2=TRun batch)
+  tstudio_dashboard.py          ← WelcomeScreen (หน้า 0) + DashboardPanel (dock ขวา)
+  tstudio_editor/_delegates/_dialogs, trun_batch_dock, retrofit_cli ← โมดูลใหม่ของ 2.2
   file_converter.py             ← ประตูรับไฟล์ 4 ชั้น (built-in → plugin → cloud → AI)
   CustomParsers/                ← parser ต่อฟอร์แมต (สัญญา: convert_to_csv(filepath, parent_widget))
   locales/{th,en}.json          ← คำแปล UI
@@ -20,8 +21,10 @@ development/                    ← เครื่องมือ dev: tests/, 
 ## กฎเหล็ก
 
 1. **ข้อความ UI ทุกอย่างผ่าน `_(key)`** + เพิ่มคีย์ใน `locales/th.json` และ `en.json` พร้อมกัน — ห้าม hardcoded ข้อความใน widget
-2. **สี UI ผ่านธีมเท่านั้น** — widget ที่ต้องการสีเป็นของตัวเอง: `setObjectName("ชื่อ")` แล้วเพิ่มกฎ
-   ใน **ทั้ง** `DARK_SS` และ `LIGHT_SS` — ห้าม `setStyleSheet` inline ที่มีค่าสี (มัน override ธีม)
+2. **สี UI ผ่าน stylesheet กลางเท่านั้น** — ปัจจุบันคือ `MASTERPIECE_SS` (มืดคงที่, มี `DARK_SS = MASTERPIECE_SS` เป็น alias):
+   widget ที่ต้องการสีเป็นของตัวเองให้ `setObjectName("ชื่อ")` แล้วเพิ่มกฎใน MASTERPIECE_SS —
+   ห้าม `setStyleSheet` inline ที่มีค่าสี · ⚠️ ระบบธีม 3 โหมด (System/Dark/Light) ของ fork **ถูกพักระหว่าง merge 2.2**
+   รอเขียน Light variant ของ MASTERPIECE_SS (ต้นแบบอยู่ใน commits e64fc8e/529d8b9) — อย่าคืน DARK_SS/LIGHT_SS เดิมแบบเดี๋ยวเอี่ยน
 3. **โค้ดต้องรันได้ทั้ง macOS และ Windows** — อะไรที่เป็นของ Windows ให้ guard
    (`creationflags=... if os.name == 'nt' else 0` / try-except รอบ `ctypes.windll`) และทดสอบด้วย
    `QT_QPA_PLATFORM=offscreen`
