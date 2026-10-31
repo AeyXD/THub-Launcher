@@ -709,15 +709,6 @@ class SettingsDialog(QDialog):
 
         self.load_config()
 
-    def _infer_provider(self, model):
-        if "/" in model: return "OpenRouter"
-        if model.startswith("gemini"): return "Google Gemini"
-        if model.startswith("claude"): return "Anthropic Claude"
-        if model.startswith("gpt") or model.startswith("o1") or model.startswith("o3") or model.startswith("o4") or model.startswith("chatgpt"): return "OpenAI"
-        if model.startswith("glm"): return "Z.ai (GLM)"
-        if model.startswith("qwen") or model.startswith("llama") or model.startswith("qwq") or model in ("custom-local-llm", "local-model"): return "Local LLM"
-        return "DeepSeek"
-
     def _update_active_tab_notice(self):
         p = self.cbo_provider.currentText()
         if p == "Local LLM":
