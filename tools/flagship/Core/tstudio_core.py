@@ -1447,6 +1447,9 @@ class CoreAI:
             elif model.startswith("deepseek"):
                 if not cfg.get("deepseek_key") and not cfg.get("api_key"):
                     raise Exception("DeepSeek API Key is missing! Please configure it in Settings.")
+            elif model.startswith("glm"):
+                if not cfg.get("zai_key"):
+                    raise Exception("Z.ai API Key is missing! Please configure it in Settings.")
             elif not cfg.get("openai_key"):
                 raise Exception("OpenAI API Key is missing! Please configure it in Settings.")
 
@@ -1580,7 +1583,23 @@ class CoreAI:
                         )
             else:
                 raise Exception(f"DeepSeek API Error {res.status_code}: {res.text}")
-            
+
+        elif provider == "Z.ai (GLM)" or model.startswith("glm"):
+            # Z.ai (GLM) — OpenAI-compatible endpoint (api.z.ai)
+            url = "https://api.z.ai/api/paas/v4/chat/completions"
+            if cloud_base_url:
+                url = cloud_base_url if cloud_base_url.endswith("/chat/completions") else f"{cloud_base_url.rstrip('/')}/chat/completions"
+            headers = {"Authorization": f"Bearer {cfg.get('zai_key', '')}", "Content-Type": "application/json"}
+            payload = {
+                "model": model, "temperature": temp_val, "max_tokens": max_tokens_val,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+            res = cls._send_request_with_retry(_session, url, payload, headers, timeout_val, f"Z.ai ({model})")
+            if res.status_code == 200:
+                content = res.json()["choices"][0]["message"]["content"].strip()
+            else:
+                raise Exception(f"Z.ai API Error {res.status_code}: {res.text}")
+
         elif is_local_llm:
             # Ollama / LM Studio defaults (prioritize local base_url or explicit local_url, fallback to LM Studio :1234 or Ollama :11434)
             raw_url = (base_url if is_local_base_url else "") or cfg.get("local_url", "").strip() or "http://localhost:1234/v1/chat/completions"

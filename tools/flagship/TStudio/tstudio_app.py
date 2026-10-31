@@ -106,6 +106,12 @@ GLOSSARY_PATH = os.path.join(BASE_DIR, "glossary.json")
 PROMPTS_PATH = os.path.join(BASE_DIR, "prompts.json")
 
 TOP_BAR_SUBMODELS = {
+    "Z.ai (GLM)": [
+        ("glm-4.6 (GLM-4.6 แนะนำ คุณภาพแปลสูง)", "glm-4.6"),
+        ("glm-4.5-air (ประหยัด/เร็ว)", "glm-4.5-air"),
+        ("glm-4.5-flash (เร็ว/ถูกที่สุด)", "glm-4.5-flash"),
+        ("✏️ กำหนดชื่อโมเดลเอง (Custom)...", "__custom__"),
+    ],
     "DeepSeek": [
         ("deepseek-chat (DeepSeek-V3 แนะนำ/ประหยัดสุด)", "deepseek-chat"),
         ("deepseek-reasoner (DeepSeek-R1 ตรรกะ CoT)", "deepseek-reasoner"),
@@ -174,6 +180,9 @@ def format_model_display_name(model_id, provider=""):
         return provider or "AI"
     m_clean = str(model_id).split("/")[-1].strip()
     mapping = {
+        "glm-4.6": "GLM-4.6",
+        "glm-4.5-air": "GLM-4.5 Air",
+        "glm-4.5-flash": "GLM-4.5 Flash",
         "deepseek-chat": "DeepSeek-V3",
         "deepseek-reasoner": "DeepSeek-R1",
         "gemini-2.0-flash": "Gemini 2.0 Flash",
@@ -1310,7 +1319,7 @@ class TranslationStudio(QMainWindow):
                 border-color: #89b4fa;
             }
         """)
-        for p in ["DeepSeek", "Google Gemini", "Anthropic Claude", "OpenAI", "OpenRouter", "Local LLM"]:
+        for p in ["DeepSeek", "Google Gemini", "Anthropic Claude", "OpenAI", "OpenRouter", "Z.ai (GLM)", "Local LLM"]:
             self.cbo_top_provider.addItem(p)
         self.cbo_top_provider.currentTextChanged.connect(self._on_top_provider_changed)
         hub_layout.addWidget(self.cbo_top_provider)
@@ -2323,6 +2332,7 @@ class TranslationStudio(QMainWindow):
                     (new_provider == "Anthropic Claude" and cur_m.startswith("claude")) or
                     (new_provider == "OpenAI" and (cur_m.startswith("gpt") or cur_m.startswith("o1") or cur_m.startswith("o3") or cur_m.startswith("o4") or cur_m.startswith("chatgpt"))) or
                     (new_provider == "OpenRouter" and "/" in cur_m) or
+                    (new_provider == "Z.ai (GLM)" and cur_m.startswith("glm")) or
                     (new_provider == "Local LLM" and (cur_m.startswith("qwen") or cur_m.startswith("llama") or cur_m.startswith("qwq") or "local" in cur_m))
                 )
                 if matches_provider:
@@ -2391,6 +2401,7 @@ class TranslationStudio(QMainWindow):
             elif model.startswith("gemini"): provider = "Google Gemini"
             elif model.startswith("claude"): provider = "Anthropic Claude"
             elif model.startswith("gpt") or model.startswith("o1") or model.startswith("o3") or model.startswith("o4"): provider = "OpenAI"
+            elif model.startswith("glm"): provider = "Z.ai (GLM)"
             elif model.startswith("qwen") or model.startswith("llama") or model.startswith("qwq") or model in ("custom-local-llm", "local-llm"): provider = "Local LLM"
             else: provider = "DeepSeek"
 
@@ -2405,10 +2416,12 @@ class TranslationStudio(QMainWindow):
             has_key = bool(cfg.get("openai_key", "").strip())
         elif provider == "OpenRouter":
             has_key = bool(cfg.get("openrouter_key", "").strip())
+        elif provider == "Z.ai (GLM)":
+            has_key = bool(cfg.get("zai_key", "").strip())
         elif provider == "Local LLM":
             has_key = True
 
-        short_prov = provider.replace("Anthropic ", "").replace("Google ", "")
+        short_prov = provider.replace("Anthropic ", "").replace("Google ", "").replace(" (GLM)", "")
         model_disp = format_model_display_name(model, provider=provider)
         badge_title = f"{short_prov} › {model_disp}"
         if has_key:

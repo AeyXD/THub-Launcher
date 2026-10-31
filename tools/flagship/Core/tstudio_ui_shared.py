@@ -230,6 +230,21 @@ def test_api_connection(provider, api_key="", base_url="", model=""):
             else:
                 return False, f"เชื่อมต่อไม่สำเร็จ (HTTP {r.status_code}): {r.text[:100]}"
 
+        elif provider == "Z.ai (GLM)":
+            url = base_url if base_url else "https://api.z.ai/api/paas/v4/models"
+            if not url.endswith("/models"):
+                url = f"{url.rstrip('/')}/models"
+            headers = {"Authorization": f"Bearer {api_key}"}
+            r = requests.get(url, headers=headers, timeout=6)
+            if r.status_code == 200:
+                models = [m.get("id") for m in r.json().get("data", [])]
+                m_cnt = f" (พบ {len(models)} โมเดล)" if models else ""
+                return True, f"เชื่อมต่อสำเร็จ! Z.ai API Key พร้อมใช้งาน{m_cnt}"
+            elif r.status_code == 401:
+                return False, "Z.ai API Key ไม่ถูกต้อง (401 Unauthorized)"
+            else:
+                return False, f"เชื่อมต่อไม่สำเร็จ (HTTP {r.status_code}): {r.text[:100]}"
+
         else:
             return False, f"ไม่รู้จักผู้ให้บริการ: {provider}"
 
@@ -251,9 +266,16 @@ class SettingsDialog(QDialog):
             "Google Gemini": "",
             "OpenAI": "",
             "Anthropic Claude": "",
-            "OpenRouter": ""
+            "OpenRouter": "",
+            "Z.ai (GLM)": ""
         }
         self.models_by_provider = {
+            "Z.ai (GLM)": [
+                ("glm-4.6 (GLM-4.6 แนะนำ คุณภาพแปลสูง)", "glm-4.6"),
+                ("glm-4.5-air (ประหยัด/เร็ว)", "glm-4.5-air"),
+                ("glm-4.5-flash (เร็ว/ถูกที่สุด)", "glm-4.5-flash"),
+                ("✏️ กำหนดชื่อโมเดลเอง (Custom)...", "__custom__")
+            ],
             "DeepSeek": [
                 ("deepseek-chat (DeepSeek-V3 แนะนำ/ประหยัดสุด)", "deepseek-chat"),
                 ("deepseek-reasoner (DeepSeek-R1 ตรรกะ CoT)", "deepseek-reasoner"),
@@ -343,7 +365,7 @@ class SettingsDialog(QDialog):
         form_layout.setSpacing(10)
 
         self.cbo_provider = QComboBox()
-        self.cbo_provider.addItems(["DeepSeek", "Google Gemini", "Anthropic Claude", "OpenAI", "OpenRouter", "Local LLM"])
+        self.cbo_provider.addItems(["DeepSeek", "Google Gemini", "Anthropic Claude", "OpenAI", "OpenRouter", "Z.ai (GLM)", "Local LLM"])
         self.cbo_provider.setCursor(Qt.CursorShape.PointingHandCursor)
         self.cbo_provider.setStyleSheet("""
             QComboBox {
@@ -537,7 +559,8 @@ class SettingsDialog(QDialog):
             ("Google Gemini", "Google Gemini API Key (AIzaSy...):", "AIzaSy..."),
             ("OpenAI", "OpenAI API Key (sk-proj-...):", "sk-proj-..."),
             ("Anthropic Claude", "Anthropic Claude Key (sk-ant-...):", "sk-ant-..."),
-            ("OpenRouter", "OpenRouter API Key (sk-or-...):", "sk-or-...")
+            ("OpenRouter", "OpenRouter API Key (sk-or-...):", "sk-or-..."),
+            ("Z.ai (GLM)", "Z.ai API Key:", "วาง key จาก console ของ z.ai")
         ]
 
         for p_name, label_text, placeholder in providers_spec:
@@ -691,6 +714,7 @@ class SettingsDialog(QDialog):
         if model.startswith("gemini"): return "Google Gemini"
         if model.startswith("claude"): return "Anthropic Claude"
         if model.startswith("gpt") or model.startswith("o1") or model.startswith("o3") or model.startswith("o4") or model.startswith("chatgpt"): return "OpenAI"
+        if model.startswith("glm"): return "Z.ai (GLM)"
         if model.startswith("qwen") or model.startswith("llama") or model.startswith("qwq") or model in ("custom-local-llm", "local-model"): return "Local LLM"
         return "DeepSeek"
 
@@ -877,6 +901,8 @@ class SettingsDialog(QDialog):
             return "Anthropic Claude"
         elif m.startswith("gpt") or m.startswith("o1") or m.startswith("o3") or m.startswith("o4") or m.startswith("chatgpt"):
             return "OpenAI"
+        elif m.startswith("glm"):
+            return "Z.ai (GLM)"
         elif m.startswith("qwen") or m.startswith("llama") or m.startswith("qwq") or "local" in m:
             return "Local LLM"
         return "DeepSeek"
@@ -889,6 +915,7 @@ class SettingsDialog(QDialog):
             self.api_keys["OpenAI"] = data.get("openai_key", "")
             self.api_keys["Anthropic Claude"] = data.get("anthropic_key", "")
             self.api_keys["OpenRouter"] = data.get("openrouter_key", "")
+            self.api_keys["Z.ai (GLM)"] = data.get("zai_key", "")
             
             for p_name, txt in self.key_inputs.items():
                 val = self.api_keys.get(p_name, "")
@@ -958,6 +985,7 @@ class SettingsDialog(QDialog):
         data["openai_key"] = self.key_inputs.get("OpenAI", QLineEdit()).text().strip()
         data["anthropic_key"] = self.key_inputs.get("Anthropic Claude", QLineEdit()).text().strip()
         data["openrouter_key"] = self.key_inputs.get("OpenRouter", QLineEdit()).text().strip()
+        data["zai_key"] = self.key_inputs.get("Z.ai (GLM)", QLineEdit()).text().strip()
         data["local_url"] = self.txt_local_url.text().strip()
         
         chosen_provider = self.cbo_provider.currentText()
