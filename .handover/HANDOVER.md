@@ -196,6 +196,13 @@ python development/tests/boot_test.py
     (สำหรับแอป flagship ที่ไม่มี venv เอง — จดไว้ตอนสร้างเครื่องใหม่) · smoke test จริงครบ 6/6
     (TStudio/TRun/TFont/TPUA/TGlyph/TVox boot+close ผ่าน interpreter ตาม path จริงของ Launcher)
 
+14. ~~**งานจิ๋วชุด "ปลอดภัยจาก upstream" (workspace ข้อ 13)**~~ ✅ **(2/11)**
+    · (ก) self-updater → fork (`432bc69`) ⛔ ห้ามรวมใน PR กลับ upstream ·
+    (ข) **UnityCN-EasyTool: ตัดสินใจปล่อยตามเดิม** — เป็นแค่ลิงก์ใน Tool Library ไม่กระทบ pipeline
+    ถ้าอนาคตต้องการควบคุมค่อย fork+สลับแบบ plugin source (บันทึกเป็นการตัดสินใจแล้ว ไม่ใช่งานค้าง) ·
+    (ค) **flagship_list.json ลบแล้ว** — dead file ไม่มีโค้ดอ่านทั้ง repo (ตรวจก่อนลบ) · **PR candidate:
+    เสนอให้ upstream ลบไฟล์นี้ด้วย** (ตามกฎ ⛔ ยังไม่เตรียม branch จนกว่าจะมีคำสั่ง)
+
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 
 - `.exe` ภายนอกใช้ไม่ได้: UTMT (GameMaker .win), ttarchext (Telltale) — ต้องมีตัวรันข้าม OS เอง
