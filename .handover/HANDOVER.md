@@ -120,6 +120,14 @@ python development/tests/boot_test.py
    acceptance ครบ 17/17 (รวม Boltgun round-trip จริง + offline + MetroExodus .lng จริง) · boot_test ผ่าน ·
    หมายเหตุ: หลัง Pack กลับแล้ว unpack ซ้ำ ค่าที่แก้จะอยู่คอลัมน์ Source
    (ไฟล์เกมเก็บสตริงเดียวต่อ entry) — เป็นพฤติกรรมที่ถูกต้อง
+8. ~~**Thai Wrap ก่อน deploy**~~ ✅ **เสร็จ (1/11/2026 · 8a5deaa)** — ตาม `../docs/spec-thaiwrap-bridge.md`
+   (เครื่องมือ thaiwrap v0.8.0 อยู่นอก workspace ที่ `Playgound/thaiwrap` — CLI: `publish/osx-arm64/ThaiWrap.Cli`) ·
+   stage ใน deploy_to_game ตามลำดับสเปก: save → QA gate → Thai Wrap → deploy · wrap เกิดกับ temp copy เท่านั้น
+   (working CSV สะอาดไร้ ZWSP เสมอ) · ทุกเส้นทาง deploy อ่านจาก `deploy_source` (Core MESG/LANG/UTMT/PAK/landb +
+   GameTools pack + template fallback · meta ยังอิงไฟล์ต้นฉบับ) · Settings: `thaiwrap_cli_path` + โหมด
+   off/zwsp/hairspace/space · exit≠0 เตือน+เลือกยกเลิก/deploy ไม่ wrap · acceptance 19/19 + boot_test ·
+   แก้บั๊กแฝงพบ: `pack_back_to_game` เทียบ manifest ด้วย `is` ทั้งที่ tool_for_file อ่าน tool.json ใหม่ทุกครั้ง
+   (ถามไฟล์ต้นฉบับซ้ำ—ตอนนี้เทียบชื่อเกม) · pipeline ไทยในแอปครบวงจร: แปล AI → QA (GLQA) → Thai Wrap → Deploy/Pack
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
 5. ~~แจ้งบั๊ก/ส่ง PR กลับ upstream~~ ✅ **ส่งแล้ว (31/10/2026 · [upstream PR #2](https://github.com/memolyviza2012-max/THub-Launcher/pull/2))**
    บั๊ก PUA ของ Core (c431d7b) — branch `fix/pua-mapping-format` (9bbfad3) แตกจาก upstream/main
