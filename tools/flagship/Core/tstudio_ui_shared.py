@@ -340,6 +340,7 @@ class SettingsDialog(QDialog):
         }
         self.current_provider = "DeepSeek"
         self.key_inputs = {}
+        self.key_group_widgets = {}
         self.key_status_labels = {}
         self.test_result_labels = {}
         self._is_loading_models = False
@@ -566,6 +567,14 @@ class SettingsDialog(QDialog):
 
         tab_active_layout.addWidget(self.card_key_status)
 
+        # ทางลัดไปแท็บ Keys — กดแล้วพาไปช่องของค่ายที่เลือกอยู่ (หาไม่เจอง่ายเกินหลังฟอร์มยาว)
+        self.btn_goto_keys = QPushButton(_("settings_open_keys_btn"))
+        self.btn_goto_keys.setToolTip(_("settings_open_keys_tooltip"))
+        self.btn_goto_keys.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_goto_keys.setStyleSheet("background: #89b4fa; color: #11111b; font-weight: bold; border-radius: 6px; padding: 7px 14px;")
+        self.btn_goto_keys.clicked.connect(self._goto_api_keys)
+        tab_active_layout.addWidget(self.btn_goto_keys)
+
         tab_active_layout.addStretch(1)
         self.tab_widget.addTab(tab_active, "🎯 โมเดลหลัก & พารามิเตอร์")
 
@@ -582,6 +591,7 @@ class SettingsDialog(QDialog):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        self.keys_scroll = scroll
         scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
         scroll_content = QWidget()
         scroll_layout = QVBoxLayout(scroll_content)
@@ -603,6 +613,8 @@ class SettingsDialog(QDialog):
             gl = QVBoxLayout(grp)
             gl.setContentsMargins(8, 6, 8, 6)
             gl.setSpacing(4)
+
+            self.key_group_widgets[p_name] = grp
 
             top_row = QHBoxLayout()
             lbl_title = QLabel(f"<b>{p_name}</b>")
@@ -1047,6 +1059,23 @@ class SettingsDialog(QDialog):
         path, _sel = QFileDialog.getOpenFileName(self, _("qa_settings_checker"), "", "Python (*.py);;All Files (*.*)")
         if path:
             self.txt_qa_checker.setText(path)
+
+    def _goto_api_keys(self):
+        """สลับไปแท็บ API Keys แล้วพาไปช่องของค่ายที่เลือกอยู่ในแท็บโมเดลหลัก"""
+        idx = self.tab_widget.indexOf(self.keys_scroll.parentWidget() if getattr(self, "keys_scroll", None) else None)
+        # keys_scroll ฝังในแท็บที่ 2 — ใช้ชื่อแท็บหา index ตรง ๆ กันโครงสร้างเปลี่ยน
+        for i in range(self.tab_widget.count()):
+            if "API Keys" in self.tab_widget.tabText(i):
+                idx = i
+                break
+        if idx is not None and idx >= 0:
+            self.tab_widget.setCurrentIndex(idx)
+        grp = self.key_group_widgets.get(self.current_provider or self.cbo_provider.currentText())
+        if grp and getattr(self, "keys_scroll", None) is not None:
+            self.keys_scroll.ensureWidgetVisible(grp)
+        inp = self.key_inputs.get(self.cbo_provider.currentText())
+        if inp:
+            inp.setFocus()
 
     def _browse_stt_cli(self):
         # thaistt เป็นสคริปต์ python/binary — ไม่กรองนามสกุล (macOS/linux ไม่มีนามสกุล, Windows เป็น .exe)
