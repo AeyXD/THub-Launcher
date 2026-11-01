@@ -3546,7 +3546,8 @@ del "%~f0"
             {"id": "TRun", "name": "TRun", "desc": "เครื่องมือแปลภาษาแบบ Batch อัตโนมัติ\n(รองรับไฟล์ขนาดใหญ่และปริมาณมหาศาล)\nแปลทั้งโปรเจกต์ได้อย่างรวดเร็วในคลิกเดียว", "color": "#a6e3a1", "exe": "trun_app.py", "icon": "assets/TRun.png"},
             {"id": "flagship.tfont", "folder": "TFont", "name": "TFont Generator", "desc": "เครื่องมือปรับแต่งและสร้างฟอนต์ PUA", "color": "#b4befe", "exe": "tfont_app.py", "icon": "assets/TFONT.png", "no_project": True},
             {"id": "flagship.tpua", "folder": "TPUA", "name": "TPUA Text Converter", "desc": "เครื่องมือแปลงข้อความภาษาไทยเข้าสู่ระบบ PUA", "color": "#cba6f7", "exe": "tpua_app.py", "icon": "assets/TPUA.png", "no_project": True},
-            {"id": "TGlyph", "name": "TGlyph", "desc": "เครื่องมือสร้าง Texture ฟอนต์\n(Generate Texture และแผนที่ตัวอักษร)\nสำหรับดัดแปลงฟอนต์ Bitmap ในเกม", "color": "#fab387", "exe": "tglyph_app.py", "icon": "assets/TGlyph.png", "no_project": True}
+            {"id": "TGlyph", "name": "TGlyph", "desc": "เครื่องมือสร้าง Texture ฟอนต์\n(Generate Texture และแผนที่ตัวอักษร)\nสำหรับดัดแปลงฟอนต์ Bitmap ในเกม", "color": "#fab387", "exe": "tglyph_app.py", "icon": "assets/TGlyph.png", "no_project": True},
+            {"id": "TVox", "name": "TVox", "desc": "สตูดิโอ FMV/Dubbing + ถอดเสียงเป็นซับ\nด้วย Whisper (local) → แปล AI → ซับไทย\nพร้อมเครื่องเล่นวิดีโอ A-B Loop", "color": "#f5c2e7", "exe": "tvox_app.py", "icon": "assets/TVox.png"}
         ]
             
         self.after(0, lambda: self.render_flagship_cards(parent_frame, registry_data))
@@ -3695,7 +3696,13 @@ del "%~f0"
         import subprocess
         import sys
         try:
-            cmd = [sys.executable, path] if path.lower().endswith(".py") else [path]
+            # เลือก Python ให้เหมาะกับแอป: venv ของแอปนั้น (ถ้ามี — เช่น TStudio ที่มี PyQt6+numpy
+            # ใน venv ตัวเอง) ไม่งั้นใช้ตัวที่รัน Launcher (root venv ต้องมี PyQt6 สำหรับแอป flagship)
+            if path.lower().endswith(".py"):
+                from core.tool_launcher import ToolLauncher
+                cmd = [ToolLauncher.resolve_app_python(path), path]
+            else:
+                cmd = [path]
             if target_path:
                 cmd.append(target_path)
             # DETACHED_PROCESS ใช้ได้เฉพาะ Windows — POSIX ห้ามส่ง creationflags != 0 โดยเด็ดขาด

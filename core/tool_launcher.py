@@ -40,6 +40,17 @@ class ToolLauncher:
     }
 
     @classmethod
+    def resolve_app_python(cls, script_path):
+        """เลือก Python ที่เหมาะกับแอป flagship: venv เฉพาะของแอปนั้น (ถ้ามี) —
+        ไม่งั้นใช้ตัวที่รันอยู่ (root venv ต้องมี deps ของแอป หรือ frozen build)"""
+        app_dir = os.path.dirname(os.path.abspath(script_path))
+        for cand in (os.path.join(app_dir, ".venv", "bin", "python"),
+                     os.path.join(app_dir, ".venv", "Scripts", "python.exe")):
+            if os.path.isfile(cand):
+                return cand
+        return sys.executable
+
+    @classmethod
     def get_flagship_dir(cls):
         """Resolves the flagship tools directory across dev and frozen environments."""
         candidates = []
