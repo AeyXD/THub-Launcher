@@ -170,6 +170,12 @@ python development/tests/boot_test.py
     ใหม่ครอบเฉพาะ glm-4.5-flash (glm-5.3/4.6 ยัง 429 — งาน production คุณภาพสูงควรเติมแพ็กเกจระดับสูงกว่า)
     · boot_test ผ่าน · ระหว่างพัฒนา: ติดตั้ง numpy ให้ venv (waveform ของ TVox ใช้ — ของเครื่อง ไม่แตะ repo)
 
+11. ~~**ปรับ run_tstudio_macos.sh ใช้ Python 3.12 ก่อน**~~ ✅ **เสร็จ (1/11 · 5e497ca)** — ตามการตัดสินใจ
+    ย้ายเวอร์ชันของเจ้าของ (3.9 EOL · root venv ย้ายแล้ว) · ลำดับ: TSTUDIO_PYTHON ยังชนะ → หา python3.12
+    (/opt/homebrew/bin → /usr/local/bin → PATH) → fallback python3 · venv เก่าคนละรุ่นสร้างใหม่อัตโนมัติครั้งเดียว
+    · deps เพิ่ม numpy (waveform ของ TVox ต้องใช้ — เครื่องใหม่เคยเงียบหาย) · ทดสอบจริงบนเครื่องนี้:
+    สคริปต์ rebuild 3.9→3.12.16 + แอปบูตผ่านสคริปต์ + boot_test 16/16 · venv ปัจจุบันของเครื่องเป็น 3.12 แล้ว
+
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 
 - `.exe` ภายนอกใช้ไม่ได้: UTMT (GameMaker .win), ttarchext (Telltale) — ต้องมีตัวรันข้าม OS เอง
