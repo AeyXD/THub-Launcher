@@ -3505,7 +3505,8 @@ del "%~f0"
                 f.write(bat_content)
                 
             # DETACHED_PROCESS (0x00000008) so the bat file outlives this process
-            subprocess.Popen([bat_path], cwd=current_dir, creationflags=0x00000008)
+            subprocess.Popen([bat_path], cwd=current_dir,
+                             creationflags=0x00000008 if sys.platform == "win32" else 0)
             import os
             os._exit(0) # Force hard exit to release file locks immediately
             
@@ -3698,7 +3699,9 @@ del "%~f0"
             cmd = [sys.executable, path] if path.lower().endswith(".py") else [path]
             if target_path:
                 cmd.append(target_path)
-            subprocess.Popen(cmd, creationflags=0x00000008, cwd=os.path.dirname(path), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # DETACHED_PROCESS ใช้ได้เฉพาะ Windows — POSIX ห้ามส่ง creationflags != 0 โดยเด็ดขาด
+            subprocess.Popen(cmd, creationflags=0x00000008 if sys.platform == "win32" else 0,
+                             cwd=os.path.dirname(path), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception as e:
             messagebox.showerror(_("Launch Error"), f"ไม่สามารถเปิดโปรแกรมได้:\n{path}\n\nข้อผิดพลาด:\n{e}", parent=self)
 
@@ -4118,7 +4121,8 @@ del "%~f0"
             if target_path:
                 cmd.append(target_path)
                 
-            subprocess.Popen(cmd, cwd=os.path.dirname(abs_path), creationflags=0x00000008)
+            subprocess.Popen(cmd, cwd=os.path.dirname(abs_path),
+                             creationflags=0x00000008 if sys.platform == "win32" else 0)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to launch:\n{e}", parent=self)
 

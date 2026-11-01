@@ -31,7 +31,7 @@ def start_installed(endpoint):
     bun, cli = runtime / 'runtime/bun.exe', runtime / 'app/cli.js'
     if not all(path.is_file() for path in (app, bun, cli, home / 'config.json')):
         raise WebTransportError('ยังไม่พบ ChatGPT Web ที่ติดตั้ง กรุณาเปิด Codex Web GPT เพื่อตั้งค่าครั้งแรก')
-    flags = subprocess.CREATE_NO_WINDOW
+    flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)  # ไม่มีบน POSIX → 0
     subprocess.Popen([str(app), '--hidden'], creationflags=flags,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     # The launcher may start its own backend. Give it time before starting a fallback.
@@ -54,7 +54,7 @@ def ensure_ready(endpoint, cancelled=lambda: False):
             except (requests.RequestException, ValueError):
                 if not launched and time.monotonic() > deadline - 20:
                     subprocess.Popen([str(bun), str(cli), 'serve'],
-                                     creationflags=subprocess.CREATE_NO_WINDOW,
+                                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     launched = True
                 time.sleep(0.25)
