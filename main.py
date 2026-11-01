@@ -3367,7 +3367,10 @@ _("*จัดระบบการจัดการโดย THub Launcher*")
         if not self.config.get("auto_update", True): return
         import requests
         try:
-            url = "https://api.github.com/repos/memolyviza2012-max/THub-Launcher/releases/latest"
+            # ⛔ FORK CUSTOMIZATION (ห้ามรวมการเปลี่ยนนี้ใน PR กลับ upstream — กฎข้อ 9 ของ AGENTS.md):
+            # เดิมชี้ releases ของ upstream ซึ่งมี releases จริง แล้วเสนออัปเดตทับ customization ของ fork
+            # สลับมาตรวจจาก fork (AeyXD) แทน — fork ยังไม่มี releases → GitHub ตอบ 404 → เงียบปลอดภัย
+            url = "https://api.github.com/repos/AeyXD/THub-Launcher/releases/latest"
             response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
             if response.status_code == 200:
                 data = response.json()
@@ -3386,6 +3389,9 @@ _("*จัดระบบการจัดการโดย THub Launcher*")
                         self.after(0, self.update_status, f"{_('มีเวอร์ชันใหม่')} (v{latest_version}) {_('แต่ไม่พบไฟล์ .zip')}", "orange")
                 else:
                     self.after(0, self.update_status, f"{_('คุณใช้งานเวอร์ชันล่าสุดแล้ว')} (v{CURRENT_VERSION})", "gray")
+            elif response.status_code == 404:
+                # fork ยังไม่มี releases ใด ๆ — ถือว่าใช้เวอร์ชันล่าสุดอยู่ (เงียบ ไม่เตือน)
+                self.after(0, self.update_status, f"{_('คุณใช้งานเวอร์ชันล่าสุดแล้ว')} (v{CURRENT_VERSION})", "gray")
             elif response.status_code in (403, 429):
                 self.after(0, self.update_status, _("ตรวจสอบอัปเดตไม่สำเร็จ (Rate Limit ติดลิมิต)"), "orange")
             else:
