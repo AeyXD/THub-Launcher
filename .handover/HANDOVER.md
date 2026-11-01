@@ -189,6 +189,13 @@ python development/tests/boot_test.py
     build_release_2.0 (packaging ฝั่ง Windows) · ui_pyqt6 เปิด powershell (AI Helper terminal) ·
     ส่วนที่ guard ถูกอยู่แล้ว: windll/winreg ใน try-except, prompt_engine มี exists-check
 
+13. ~~**หน้า THub Apps ใน Launcher เปิดได้ครบทุกแอป**~~ ✅ **เสร็จ (2/11)** — เดิมพัง 2 ชั้น:
+    การ์ดไม่ครบ (ไม่มี TVox) + ทุกการ์ด spawn ด้วย root venv ที่ไม่มี PyQt6 (กดแล้วตายเงียบ) ·
+    แก้: +การ์ด TVox (พร้อม project context) · `ToolLauncher.resolve_app_python()` — แอปไหนมี venv
+    ของตัวเอง (TStudio) ใช้ของมัน ไม่งั้น root venv · root venv เสริม PyQt6+Pillow+numpy
+    (สำหรับแอป flagship ที่ไม่มี venv เอง — จดไว้ตอนสร้างเครื่องใหม่) · smoke test จริงครบ 6/6
+    (TStudio/TRun/TFont/TPUA/TGlyph/TVox boot+close ผ่าน interpreter ตาม path จริงของ Launcher)
+
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 
 - `.exe` ภายนอกใช้ไม่ได้: UTMT (GameMaker .win), ttarchext (Telltale) — ต้องมีตัวรันข้าม OS เอง
