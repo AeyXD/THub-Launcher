@@ -4330,28 +4330,31 @@ del "%~f0"
         content_frame = ctk.CTkFrame(self.main_frame, corner_radius=15, fg_color="#1e1e2e", border_width=1, border_color="#45475a")
         content_frame.pack(fill="both", expand=True, padx=40, pady=30)
         
-        # Creator Section
-        lbl_creator_head = ctk.CTkLabel(content_frame, text="Creator & Lead Developer", font=ctk.CTkFont(size=16), text_color="gray")
-        lbl_creator_head.pack(pady=(60, 5))
+        # ── เจ้าของ fork (AeyXD Edition) ──
+        lbl_creator_head = ctk.CTkLabel(content_frame, text=_("about_fork_owner_head"), font=ctk.CTkFont(size=16), text_color="gray")
+        lbl_creator_head.pack(pady=(50, 5))
         
-        lbl_name = ctk.CTkLabel(content_frame, text=_("หน๊ด หนวด translator"), font=ctk.CTkFont(size=42, weight="bold"), text_color="#cba6f7")
+        lbl_name = ctk.CTkLabel(content_frame, text="Prawith T. (AeyXD)", font=ctk.CTkFont(size=38, weight="bold"), text_color="#cba6f7")
         lbl_name.pack(pady=0)
         
-        lbl_desc = ctk.CTkLabel(content_frame, text="The Ultimate Game Localization & Modding Hub", font=ctk.CTkFont(size=18), text_color="#a6e3a1")
-        lbl_desc.pack(pady=(10, 20))
+        lbl_desc = ctk.CTkLabel(content_frame, text=_("about_fork_desc"), font=ctk.CTkFont(size=16), text_color="#a6e3a1")
+        lbl_desc.pack(pady=(10, 15))
         
-        # Social Links
-        btn_github = ctk.CTkButton(content_frame, text="⭐ GitHub Profile", fg_color="#313244", hover_color="#45475a", text_color="#cdd6f4", font=ctk.CTkFont(weight="bold"), command=lambda: webbrowser.open("https://github.com/memolyviza2012-max"))
+        btn_github = ctk.CTkButton(content_frame, text="⭐ GitHub (AeyXD)", fg_color="#313244", hover_color="#45475a", text_color="#cdd6f4", font=ctk.CTkFont(weight="bold"), command=lambda: webbrowser.open("https://github.com/AeyXD"))
         btn_github.pack(pady=5)
         
-        btn_fb = ctk.CTkButton(content_frame, text="📘 Facebook Page", fg_color="#1877F2", hover_color="#166FE5", font=ctk.CTkFont(weight="bold"), command=lambda: webbrowser.open("https://www.facebook.com/NodNuatTranslator/"))
-        btn_fb.pack(pady=5)
+        # ── เครดิตต้นทาง (upstream) ──
+        credit_frame = ctk.CTkFrame(content_frame, fg_color="transparent", border_width=1, border_color="#45475a", corner_radius=10)
+        credit_frame.pack(fill="x", padx=40, pady=(25, 10))
         
-        btn_discord = ctk.CTkButton(content_frame, text="👾 Discord Server", fg_color="#5865F2", hover_color="#4752C4", font=ctk.CTkFont(weight="bold"), command=lambda: webbrowser.open("https://discord.gg/KnmDYSxnuW"))
-        btn_discord.pack(pady=5)
+        lbl_credit_head = ctk.CTkLabel(credit_frame, text=_("about_upstream_credit_head"), font=ctk.CTkFont(size=13), text_color="gray")
+        lbl_credit_head.pack(pady=(10, 2))
         
-        btn_group = ctk.CTkButton(content_frame, text="💬 THub Dev Room", fg_color="#f38ba8", hover_color="#eba0ac", text_color="#1e1e2e", font=ctk.CTkFont(weight="bold"), command=lambda: webbrowser.open("https://www.facebook.com/groups/thubdevroom"))
-        btn_group.pack(pady=(5, 30))
+        lbl_upstream = ctk.CTkLabel(credit_frame, text=_("หน๊ด หนวด translator") + "  ·  memolyviza2012-max", font=ctk.CTkFont(size=15, weight="bold"), text_color="#89b4fa")
+        lbl_upstream.pack(pady=2)
+        
+        btn_upstream = ctk.CTkButton(credit_frame, text=_("about_upstream_repo_btn"), fg_color="transparent", text_color="#a6adc8", hover_color="#313244", font=ctk.CTkFont(size=12), command=lambda: webbrowser.open("https://github.com/memolyviza2012-max/THub-Launcher"))
+        btn_upstream.pack(pady=(2, 10))
         
         # App Info
         info_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
@@ -4362,12 +4365,13 @@ del "%~f0"
         btn_license = ctk.CTkButton(info_frame, text="Open Source (GPL License)", fg_color="transparent", text_color="#89b4fa", hover_color="#313244", command=lambda: webbrowser.open("https://www.gnu.org/licenses/gpl-3.0.html"))
         btn_license.grid(row=0, column=1, sticky="w", padx=10, pady=5)
         
-        # Additional Links (Website & Donate)
-        btn_website = ctk.CTkButton(content_frame, text="🌐 Official Website", fg_color="#11111b", border_width=1, border_color="#89dceb", text_color="#89dceb", hover_color="#313244", font=ctk.CTkFont(size=14, weight="bold"), command=lambda: webbrowser.open("https://nodnuattranslator.vercel.app/"))
-        btn_website.pack(pady=(10, 5))
-        
-        btn_donate = ctk.CTkButton(content_frame, text=_("💖 สนับสนุนการพัฒนาโปรแกรม (Donate)"), fg_color="#11111b", border_width=1, border_color="#f38ba8", text_color="#f38ba8", hover_color="#313244", font=ctk.CTkFont(size=14, weight="bold"), command=lambda: webbrowser.open("https://nodnuattranslator.vercel.app/donate-qr.jpg"))
-        btn_donate.pack(pady=5)
+        # ลิงก์ส่วนตัวของเจ้าของต้นทาง (เว็บ/Donate) — อยู่ในกรอบเครดิตเท่านั้น ไม่ใช่ปุ่มหลักของ fork
+        web_row = ctk.CTkFrame(credit_frame, fg_color="transparent")
+        web_row.pack(pady=(0, 10))
+        ctk.CTkButton(web_row, text="🌐", width=36, fg_color="transparent", text_color="#89dceb", hover_color="#313244", command=lambda: webbrowser.open("https://nodnuattranslator.vercel.app/")).pack(side="left", padx=4)
+        ctk.CTkButton(web_row, text="💬 FB", width=52, fg_color="transparent", text_color="#89dceb", hover_color="#313244", command=lambda: webbrowser.open("https://www.facebook.com/NodNuatTranslator/")).pack(side="left", padx=4)
+        ctk.CTkButton(web_row, text="👾 Discord", width=90, fg_color="transparent", text_color="#89dceb", hover_color="#313244", command=lambda: webbrowser.open("https://discord.gg/KnmDYSxnuW")).pack(side="left", padx=4)
+        ctk.CTkButton(web_row, text=_("💖 สนับสนุนการพัฒนาโปรแกรม (Donate)"), fg_color="transparent", text_color="#f38ba8", hover_color="#313244", font=ctk.CTkFont(size=12), command=lambda: webbrowser.open("https://nodnuattranslator.vercel.app/donate-qr.jpg")).pack(side="left", padx=4)
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("Dark")
