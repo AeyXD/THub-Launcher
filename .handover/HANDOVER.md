@@ -147,6 +147,16 @@ python development/tests/boot_test.py
    + ภาพเทียบ `development/ui-screenshots/masterpiece-{light,dark}.png` (โหมดสว่าง: พิกเซลสว่าง 97% ไม่มีมืดค้าง) ·
    แถมแก้ `.gitignore`: `tests/` → `/tests/` เพราะเดิมไปครอบ `development/tests/` จน add ไม่ได้
 
+9. ~~**งานจิ๋ว: กฎ fork↔upstream + ซ่อมความพกพา Modding-Knowledge**~~ ✅ **เสร็จ (1/11/2026 · b785304)**
+   · AGENTS.md เพิ่มกฎเหล็กข้อ 9: push ได้เฉพาะ origin · ⛔ PR กลับ upstream ต้องรอคำสั่งเจ้าของเท่านั้น
+   (ห้ามเตรียม branch เอง — ตามแบบ TFP/GLQA, อ้างอิง ../AGENTS.md ข้อ 1) ·
+   knowledge_service: `EXTERNAL_KB` (E:\ hardcode → root_kb เป็น None บน macOS ทั้งระบบเงียบ) แก้เป็น resolve:
+   env `THUB_KB_PATH` → config `kb_external_path` → legacy E:\ → LOCAL_KB · ทดสอบ macOS จริง: 60 engines,
+   ค้น Metro Exodus/Avowed/Wasteland 3 เจอครบ, env override ทำงาน · ลิงก์ index แปลง 407 จาก
+   `file:///E%3A/...` เป็น relative — **ตรวจครบทั้ง 407 ชี้ถึงไฟล์จริง 100%** · **PR candidate (ตามกฎ ⛔ ยังไม่เตรียม
+   branch): ลิงก์ absolute ใน _Index เป็น bug ที่ upstream ควรได้รับด้วย** · PROJECT_STATE.json (IP บ้าน/GPU farm/
+   conversation id) git rm --cached + gitignore (ยอมรับ divergence เล็ก) · boot_test ผ่าน
+
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 
 - `.exe` ภายนอกใช้ไม่ได้: UTMT (GameMaker .win), ttarchext (Telltale) — ต้องมีตัวรันข้าม OS เอง
