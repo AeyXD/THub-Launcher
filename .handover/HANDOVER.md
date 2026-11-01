@@ -128,6 +128,11 @@ python development/tests/boot_test.py
    off/zwsp/hairspace/space · exit≠0 เตือน+เลือกยกเลิก/deploy ไม่ wrap · acceptance 19/19 + boot_test ·
    แก้บั๊กแฝงพบ: `pack_back_to_game` เทียบ manifest ด้วย `is` ทั้งที่ tool_for_file อ่าน tool.json ใหม่ทุกครั้ง
    (ถามไฟล์ต้นฉบับซ้ำ—ตอนนี้เทียบชื่อเกม) · pipeline ไทยในแอปครบวงจร: แปล AI → QA (GLQA) → Thai Wrap → Deploy/Pack
+   · **ระยะสองเสร็จต่อ (1/11 · 6632fa7)**: โหมด `auto` ใน dropdown (default ยัง off) — resolve ตามลำดับ
+   `line_break` จาก tool.json ของ Game Tool ที่ผูก origin → ตารางนามสกุล `EXT_BREAK_TABLE` (เริ่มต้นทุกอัน = zwsp,
+   เติมข้อยกเว้นเมื่อพิสูจน์แล้ว) → zwsp · โหมดเจาะจงชนะเสมอ · UI โปร่งใสตอน deploy แสดงค่า+ที่มา ·
+   acceptance ระยะสอง 20/20 (รวม regression รอบแรก) · หมายเหตุ: ฝั่ง TFP ยังไม่เติม line_break เกมไหนเลย (omit จนพิสูจน์ —
+   เมื่อเติม commit เดียวจบ ฝั่งเราไม่ต้องแก้)
 4. locale ภาษาอื่น (ja/zh/ru ฯลฯ) ยังไม่มีคีย์ใหม่ — fallback แสดงคีย์/ไทย
 5. ~~แจ้งบั๊ก/ส่ง PR กลับ upstream~~ ✅ **ส่งแล้ว (31/10/2026 · [upstream PR #2](https://github.com/memolyviza2012-max/THub-Launcher/pull/2))**
    บั๊ก PUA ของ Core (c431d7b) — branch `fix/pua-mapping-format` (9bbfad3) แตกจาก upstream/main
