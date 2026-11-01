@@ -176,6 +176,19 @@ python development/tests/boot_test.py
     · deps เพิ่ม numpy (waveform ของ TVox ต้องใช้ — เครื่องใหม่เคยเงียบหาย) · ทดสอบจริงบนเครื่องนี้:
     สคริปต์ rebuild 3.9→3.12.16 + แอปบูตผ่านสคริปต์ + boot_test 16/16 · venv ปัจจุบันของเครื่องเป็น 3.12 แล้ว
 
+12. ~~**macOS port: กวาด Windows-ism ทั้ง repo**~~ ✅ **เสร็จ (2/11)** — upstream ออกแบบมาเฉพาะ Windows
+    (README ระบุ) แต่ fork นี้พอร์ตใช้บน macOS เป็นหลัก · สแกนระบบ: creationflags ไม่ guard / os.startfile /
+    winreg / windll / hardcode E:\ / .bat / .exe / LOCALAPPDATA+msvcrt (Codex Web bridge) ·
+    **แก้แล้วรอบนี้**: main.py เปิดโฟลเดอร์โปรเจกต์ + ปุ่มเปิดไฟล์/ภาพ/คัมภีร์ ทั้ง ui_pyqt6 (รวม explorer
+    fallback) → helper กลาง `core/open_utils.open_path()` (win: startfile · mac: `open` · linux: xdg-open) ·
+    `tool_launcher` เดิม darwin ตกหล่นไป xdg-open → ใช้ helper · `tstudio_core` default workspace E:\ →
+    platform-aware (~/Mod_Workspace บน mac) · ก่อนหน้า: creationflags ทั้ง main.py+bridge_runtime (e5236da) ·
+    **ยังเป็นข้อจำกัด macOS (ตามธรรมชาติของเครื่องมือภายนอก)**: GameBridges/Plugins ที่เรียก .exe ภายนอก
+    (UTMT/ttarchext/UnrealLocres/repak บางส่วน — บางตัวมี binary mac เติมได้ภายหลัง) · translation_transport
+    (Codex Web GPT bridge) ทั้งชุด Windows-only · art harvester หา browser จาก path ของ Windows ·
+    build_release_2.0 (packaging ฝั่ง Windows) · ui_pyqt6 เปิด powershell (AI Helper terminal) ·
+    ส่วนที่ guard ถูกอยู่แล้ว: windll/winreg ใน try-except, prompt_engine มี exists-check
+
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 
 - `.exe` ภายนอกใช้ไม่ได้: UTMT (GameMaker .win), ttarchext (Telltale) — ต้องมีตัวรันข้าม OS เอง
