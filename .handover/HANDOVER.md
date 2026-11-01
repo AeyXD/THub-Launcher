@@ -157,6 +157,17 @@ python development/tests/boot_test.py
    branch): ลิงก์ absolute ใน _Index เป็น bug ที่ upstream ควรได้รับด้วย** · PROJECT_STATE.json (IP บ้าน/GPU farm/
    conversation id) git rm --cached + gitignore (ยอมรับ divergence เล็ก) · boot_test ผ่าน
 
+10. ~~**Whisper ใน TVox (Phase S2)**~~ ✅ **เสร็จ (1/11/2026 · e13d87a)** — ตาม `../docs/spec-vox-whisper.md`
+    · Settings: `stt_cli_path` (path เดียวถึง thaistt — ตัวมันจัดการ ffmpeg/โมเดลเอง · ไม่ตั้ง → ปุ่ม disabled
+    + tooltip แนะนำ) · ปุ่ม 🌿 ใน transport bar: แหล่ง (ไฟล์เล่นอยู่/เลือกใหม่) + ช่วง (ทั้งไฟล์/A–B ตาม mark) +
+    ภาษา (auto) · QProcess + QProgressDialog + progress % จาก stderr + ยกเลิกได้ + timeout max(300s, ความยาวสื่อ) ·
+    จบเสนอ "เปิดฉบับร่างในตาราง" (Subtitles Game Tool → CSV + origin_file + ID ฝังเวลา) / "เปิดไฟล์ SRT" + เตือน
+    ตรวจต้นฉบับก่อนแปล · acceptance 20/20: ถอดคลิปอังกฤษจริง (whisper.cpp large-v3-turbo local) ตรงสาระ 8/8 คำหลัก ·
+    ปิดท้ายไปป์ไลน์ครบ: แก้ → QA gate (รันจริง) → Thai Wrap zwsp → Pack back → SRT ไทยเวลาตรงเดิมทุก ms + ZWSP ·
+    **⚠️ ติดค้างขาเดียว: แปล AI จริง** — Z.ai ตอบ 429 Insufficient balance (ทุกโมเดล เครดิตบัญชีหมด) เทสจึงใช้
+    คำแปลจำลองแบบระบุชัด **พอเติมเครดิตแล้วรันซ้ำขา AI นี้** (สคริปต์เดิมติดไว้ ~ แค้มป์ตัว AI_SIMULATED)
+    · boot_test ผ่าน · ระหว่างพัฒนา: ติดตั้ง numpy ให้ venv (waveform ของ TVox ใช้ — ของเครื่อง ไม่แตะ repo)
+
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 
 - `.exe` ภายนอกใช้ไม่ได้: UTMT (GameMaker .win), ttarchext (Telltale) — ต้องมีตัวรันข้าม OS เอง
