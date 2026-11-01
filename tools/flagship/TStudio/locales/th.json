@@ -547,5 +547,17 @@
   "qa_gate_confirm": "พบ {n} จุดระดับ error ในคำแปล\nยังคงจะ deploy ต่อหรือไม่?",
   "qa_settings_checker": "8. 🛡️ QA Checker (path ของ thai_qa.py):",
   "qa_settings_checker_ph": "ตัวอย่าง: ../game-localization-qa/checker/thai_qa.py",
-  "qa_settings_gate": "เปิด QA gate ก่อน deploy (ตรวจ dry-run ถ้ามี error จะให้ยืนยันก่อน)"
+  "qa_settings_gate": "เปิด QA gate ก่อน deploy (ตรวจ dry-run ถ้ามี error จะให้ยืนยันก่อน)",
+  "tw_title": "Thai Wrap ก่อน deploy",
+  "tw_settings_cli": "5. ✂️ Thai Wrap CLI (ถ้ามี):",
+  "tw_settings_cli_ph": "path ของ thaiwrap CLI เช่น .../publish/osx-arm64/ThaiWrap.Cli",
+  "tw_settings_mode": "โหมด Thai Wrap:",
+  "tw_mode_hint": "zwsp = ทั่วไป (แทรก zero-width space ที่รอยต่อคำ) · hairspace = Scaleform/Flash เช่น Witcher 3 · space = เอนจินที่ตัดเฉพาะช่องว่างจริง เช่น Aurora/W1 · off = ปิดใช้งาน · การ wrap เกิดตอน deploy เท่านั้น ไฟล์ทำงานในแอปสะอาดไม่มี ZWSP เสมอ",
+  "tw_warn_no_cli": "เปิดโหมด Thai Wrap ไว้แต่ยังไม่ได้ตั้ง path ของ CLI — deploy จะทำงานแบบไม่ wrap พร้อมแจ้งเตือน",
+  "tw_cli_missing": "เปิดโหมด Thai Wrap ไว้แต่หา CLI ไม่เจอ (ตาม path ที่ตั้งใน Settings) — รอบนี้จะ deploy แบบไม่ wrap",
+  "tw_wrapping": "กำลัง Thai Wrap (แทรกจุดตัดบรรทัด)…",
+  "tw_applied_status": "Thai Wrap ใช้งานแล้ว (โหมด {mode}) — deploy จากสำเนาชั่วคราว ไฟล์ทำงานยังสะอาด",
+  "tw_failed": "thaiwrap รันไม่สำเร็จ:\n{msg}\n\nจะยกเลิก deploy หรือ deploy ต่อแบบไม่ wrap?",
+  "tw_deploy_unwrapped": "Deploy ต่อแบบไม่ wrap",
+  "tw_deploying_unwrapped": "ดำเนินการ deploy ต่อแบบไม่ wrap"
 }

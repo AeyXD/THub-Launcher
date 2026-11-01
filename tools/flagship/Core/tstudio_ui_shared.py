@@ -495,6 +495,28 @@ class SettingsDialog(QDialog):
         self.chk_qa_gate = QCheckBox(_("qa_settings_gate"))
         form_layout.addRow("", self.chk_qa_gate)
 
+        # Thai Wrap ก่อน deploy (spec-thaiwrap-bridge.md)
+        self.txt_thaiwrap_cli = QLineEdit()
+        self.txt_thaiwrap_cli.setPlaceholderText(_("tw_settings_cli_ph"))
+        btn_tw_browse = QPushButton("…")
+        btn_tw_browse.setFixedWidth(34)
+        btn_tw_browse.clicked.connect(self._browse_thaiwrap_cli)
+        tw_row = QHBoxLayout()
+        tw_row.setContentsMargins(0, 0, 0, 0)
+        tw_row.addWidget(self.txt_thaiwrap_cli, 1)
+        tw_row.addWidget(btn_tw_browse)
+        form_layout.addRow(_("tw_settings_cli"), tw_row)
+
+        self.cbo_thaiwrap_mode = QComboBox()
+        self.cbo_thaiwrap_mode.addItems(["off", "zwsp", "hairspace", "space"])
+        self.cbo_thaiwrap_mode.setToolTip(_("tw_mode_hint"))
+        form_layout.addRow(_("tw_settings_mode"), self.cbo_thaiwrap_mode)
+
+        lbl_tw_hint = QLabel(_("tw_mode_hint"))
+        lbl_tw_hint.setWordWrap(True)
+        lbl_tw_hint.setStyleSheet("color: #a6adc8; font-size: 11px; background: transparent;")
+        form_layout.addRow("", lbl_tw_hint)
+
         tab_active_layout.addLayout(form_layout)
 
         # Active provider key status banner
@@ -961,6 +983,9 @@ class SettingsDialog(QDialog):
             self.spn_concurrency.setValue(int(data.get("batch_concurrency", 10)))
             self.txt_qa_checker.setText(data.get("qa_checker_path", ""))
             self.chk_qa_gate.setChecked(bool(data.get("qa_gate_before_deploy", False)))
+            self.txt_thaiwrap_cli.setText(data.get("thaiwrap_cli_path", ""))
+            tw_mode = str(data.get("thaiwrap_mode", "off")).lower()
+            self.cbo_thaiwrap_mode.setCurrentText(tw_mode if tw_mode in ("off", "zwsp", "hairspace", "space") else "off")
 
             self._update_active_tab_notice()
         except Exception as e:
@@ -994,15 +1019,26 @@ class SettingsDialog(QDialog):
         data["batch_concurrency"] = self.spn_concurrency.value()
         data["qa_checker_path"] = self.txt_qa_checker.text().strip()
         data["qa_gate_before_deploy"] = self.chk_qa_gate.isChecked()
+        data["thaiwrap_cli_path"] = self.txt_thaiwrap_cli.text().strip()
+        data["thaiwrap_mode"] = self.cbo_thaiwrap_mode.currentText()
+        # เตือนตอนเซฟ: เปิดโหมดแต่ยังไม่ได้ตั้ง path (deploy จะทำงานแบบไม่ wrap พร้อมแจ้งเตือน)
+        if data["thaiwrap_mode"] != "off" and not data["thaiwrap_cli_path"]:
+            QMessageBox.warning(self, _("tw_settings_title"), _("tw_warn_no_cli"))
 
         TStudioCore.save_config(data)
         QMessageBox.information(self, "บันทึกสำเร็จ", "บันทึกการตั้งค่า AI Models และ Multi-API Keys เรียบร้อยแล้ว!")
         super().accept()
 
     def _browse_qa_checker(self):
-        path, _ = QFileDialog.getOpenFileName(self, _("qa_settings_checker"), "", "Python (*.py);;All Files (*.*)")
+        path, _sel = QFileDialog.getOpenFileName(self, _("qa_settings_checker"), "", "Python (*.py);;All Files (*.*)")
         if path:
             self.txt_qa_checker.setText(path)
+
+    def _browse_thaiwrap_cli(self):
+        # thaiwrap CLI เป็น binary ของ dotnet — ไม่กรองนามสกุล (macOS/linux ไม่มีนามสกุล, Windows เป็น .exe)
+        path, _sel = QFileDialog.getOpenFileName(self, _("tw_settings_cli"), "", "All Files (*);;Executable (*.exe)")
+        if path:
+            self.txt_thaiwrap_cli.setText(path)
 
     def accept(self):
         self.save_config()

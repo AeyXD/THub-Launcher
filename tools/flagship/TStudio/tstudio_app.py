@@ -5474,8 +5474,9 @@ class TranslationStudio(QMainWindow):
         self.statusBar().showMessage(_("gt_extract_ok_status", csv=os.path.basename(csv_out)), 5000)
         QMessageBox.information(self, _("success_title"), _("gt_extract_ok", csv=os.path.basename(csv_out), n=len(self.model._data) if self.model else 0))
 
-    def pack_back_to_game(self, manifest=None):
-        """Pack CSV ปัจจุบันกลับเป็นไฟล์เกมด้วย Game Tool (เลือกปลายทาง + ยืนยันก่อนเขียน)"""
+    def pack_back_to_game(self, manifest=None, csv_override=None):
+        """Pack CSV ปัจจุบันกลับเป็นไฟล์เกมด้วย Game Tool (เลือกปลายทาง + ยืนยันก่อนเขียน)
+        csv_override = ใช้ CSV อื่นแทน self.csv_path (เช่น temp ที่ผ่าน Thai Wrap จาก deploy flow)"""
         from PyQt6.QtWidgets import QInputDialog
         import tstudio_game_tools as gt
         from tstudio_core import TStudioCore
@@ -5513,7 +5514,10 @@ class TranslationStudio(QMainWindow):
             QMessageBox.information(self, _("gt_pack_title"), _("gt_pack_unavailable", game=manifest.get("display", manifest.get("game"))))
             return
 
-        original = origin if (origin and gt.tool_for_file(origin) is manifest) else ""
+        # ใช้ origin ที่จำไว้เมื่อเป็นเกมเดียวกับ manifest (เทียบชื่อเกม — tool_for_file อ่าน tool.json
+        # ใหม่ทุกครั้ง การเทียบ object ด้วย is จะพลาดเสมอ แล้วถามไฟล์ต้นฉบับซ้ำโดยไม่จำเป็น)
+        _mf_origin = gt.tool_for_file(origin) if origin else None
+        original = origin if (_mf_origin and _mf_origin.get("game") == manifest.get("game")) else ""
         if not original:
             exts = manifest.get("file_extensions", []) or []
             flt = _("gt_file_filter", exts=" ".join("*" + e for e in exts)) + ";;" + _("gt_all_files")
@@ -5539,8 +5543,9 @@ class TranslationStudio(QMainWindow):
         except Exception:
             pass
 
+        pack_csv = csv_override or self.csv_path
         ok, out = self._run_game_tool_with_progress(
-            lambda: gt.pack(manifest, original, self.csv_path, output), _("gt_packing"))
+            lambda: gt.pack(manifest, original, pack_csv, output), _("gt_packing"))
         if not ok:
             QMessageBox.critical(self, _("error_title"), _("gt_pack_fail", msg=out[:500]))
             return
@@ -7690,6 +7695,42 @@ class TranslationStudio(QMainWindow):
                     except Exception as e:
                         print(f"QA gate error: {e}")
 
+            # ── Thai Wrap (spec-thaiwrap-bridge.md) — หลัง QA gate ก่อน dispatch ทุกเส้นทาง ──
+            # working CSV ไม่ถูกแตะ: wrap เกิดกับ temp copy และทุกเส้นทาง deploy อ่านจาก deploy_source
+            # ลำดับ pipeline ตามสเปก: save → QA gate → Thai Wrap → deploy (บันทึกแก้ไขล่าสุดก่อน wrap เสมอ)
+            try:
+                self.silent_save_csv()
+            except Exception:
+                pass
+            deploy_source = self.csv_path
+            try:
+                import tstudio_thaiwrap as _tw
+                _tw_mode = str(cfg.get("thaiwrap_mode", "off")).lower()
+                if _tw_mode != "off":
+                    _tw_cli = _tw.find_cli(cfg)
+                    if not _tw_cli:
+                        QMessageBox.warning(self, _("tw_title"), _("tw_cli_missing"))
+                    else:
+                        _tw_ok, _tw_res = self._run_game_tool_with_progress(
+                            lambda: _tw.wrap_csv(_tw_cli, self.csv_path, _tw_mode), _("tw_wrapping"))
+                        if _tw_ok:
+                            deploy_source = _tw_res
+                            self.statusBar().showMessage(_("tw_applied_status", mode=_tw_mode), 4000)
+                        else:
+                            # exit ≠ 0 → แสดง stderr + ให้เลือก ยกเลิก / deploy ต่อแบบไม่ wrap (ห้ามเงียบ)
+                            _tw_box = QMessageBox(self)
+                            _tw_box.setWindowTitle(_("tw_title"))
+                            _tw_box.setIcon(QMessageBox.Icon.Warning)
+                            _tw_box.setText(_("tw_failed", msg=str(_tw_res)[:600]))
+                            _btn_go = _tw_box.addButton(_("tw_deploy_unwrapped"), QMessageBox.ButtonRole.NoRole)
+                            _tw_box.addButton(QMessageBox.StandardButton.Cancel)
+                            _tw_box.exec()
+                            if _tw_box.clickedButton() is not _btn_go:
+                                return
+                            QMessageBox.information(self, _("tw_title"), _("tw_deploying_unwrapped"))
+            except Exception as _tw_err:
+                print(f"ThaiWrap stage error: {_tw_err}")
+
             origin_file = cfg.get("origin_file", "")
 
             # ── Game Tool pack-back (spec-game-tools.md Phase C2) ──
@@ -7714,7 +7755,7 @@ class TranslationStudio(QMainWindow):
                 _box.addButton(QMessageBox.StandardButton.Cancel)
                 _box.exec()
                 if _box.clickedButton() is _btn_pack:
-                    self.pack_back_to_game(manifest=_gt_manifest)
+                    self.pack_back_to_game(manifest=_gt_manifest, csv_override=deploy_source)
                     return
                 if _box.clickedButton() is None:
                     return  # ปิดหน้าต่าง = ยกเลิก
@@ -7736,7 +7777,7 @@ class TranslationStudio(QMainWindow):
                             self.statusBar().showMessage("Deploying to MESG JSON...")
                             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
                             try:
-                                reconstruct_mesg_json_file(self.csv_path, origin_file)
+                                reconstruct_mesg_json_file(deploy_source, origin_file)
                                 QApplication.restoreOverrideCursor()
                                 QMessageBox.information(self, "Success", f"Successfully deployed to MESG JSON at:\n{origin_file}")
                             except Exception as e:
@@ -7758,7 +7799,7 @@ class TranslationStudio(QMainWindow):
                         self.statusBar().showMessage("Deploying to LANG file...")
                         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
                         try:
-                            reconstruct_lang_file(self.csv_path, meta_path, origin_file)
+                            reconstruct_lang_file(deploy_source, meta_path, origin_file)
                             QApplication.restoreOverrideCursor()
                             QMessageBox.information(self, _("deploy_success_title"), f"Successfully deployed to LANG file at:\n{origin_file}")
                         except Exception as e:
@@ -7778,7 +7819,7 @@ class TranslationStudio(QMainWindow):
                         import sys
                         sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Core"))
                         from utmt_handler import UTMTHandler
-                        out_win = UTMTHandler.repack_strings_from_csv(origin_file, self.csv_path)
+                        out_win = UTMTHandler.repack_strings_from_csv(origin_file, deploy_source)
                         QApplication.restoreOverrideCursor()
                         QMessageBox.information(self, _("deploy_success_title"), f"Successfully modded GameMaker archive at:\n{out_win}")
                     except Exception as e:
@@ -7796,7 +7837,7 @@ class TranslationStudio(QMainWindow):
                     QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
                     try:
                         from tstudio_core import TPakManager
-                        TPakManager.reconstruct_pak_file(origin_file, self.csv_path, origin_file)
+                        TPakManager.reconstruct_pak_file(origin_file, deploy_source, origin_file)
                         QApplication.restoreOverrideCursor()
                         QMessageBox.information(self, _("deploy_success_title"), f"Successfully deployed to PAK file at:\n{origin_file}")
                     except Exception as e:
@@ -7829,7 +7870,7 @@ class TranslationStudio(QMainWindow):
                 from tstudio_telltale import TelltaleManager
                 manager = TelltaleManager()
                 # Inject CSV into landb files in input_dir
-                manager.convert_csv_to_landb(self.csv_path, input_dir)
+                manager.convert_csv_to_landb(deploy_source, input_dir)
                 
                 # Pack the directory
                 success, msg = manager.pack_ttarch2(input_dir, out_ttarch2)
@@ -7924,7 +7965,17 @@ class TranslationStudio(QMainWindow):
                 replace_count = 0
                 
                 # Sort by length descending to prevent shorter strings from replacing parts of longer strings
-                sorted_data = sorted(self.model._data, key=lambda x: len(x.get("source", "")), reverse=True)
+                if deploy_source != self.csv_path:
+                    # Thai Wrap เปิดใช้ — อ่านคู่ source→trans จาก CSV ที่ wrapped แทนข้อมูลในหน่วยความจำ
+                    import csv as _csv_mod
+                    with open(deploy_source, "r", encoding="utf-8-sig", newline="") as _df:
+                        sorted_data = sorted(
+                            [{"source": r.get("Source", ""), "trans": r.get("Translation", ""),
+                              "ai_ref": r.get("AI_Reference", "")}
+                             for r in _csv_mod.DictReader(_df) if r.get("Source")],
+                            key=lambda x: len(x.get("source", "")), reverse=True)
+                else:
+                    sorted_data = sorted(self.model._data, key=lambda x: len(x.get("source", "")), reverse=True)
                 
                 for item in sorted_data:
                     src = item.get("source", "").replace('\n', '\n')
