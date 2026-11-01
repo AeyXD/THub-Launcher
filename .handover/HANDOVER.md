@@ -164,8 +164,10 @@ python development/tests/boot_test.py
     จบเสนอ "เปิดฉบับร่างในตาราง" (Subtitles Game Tool → CSV + origin_file + ID ฝังเวลา) / "เปิดไฟล์ SRT" + เตือน
     ตรวจต้นฉบับก่อนแปล · acceptance 20/20: ถอดคลิปอังกฤษจริง (whisper.cpp large-v3-turbo local) ตรงสาระ 8/8 คำหลัก ·
     ปิดท้ายไปป์ไลน์ครบ: แก้ → QA gate (รันจริง) → Thai Wrap zwsp → Pack back → SRT ไทยเวลาตรงเดิมทุก ms + ZWSP ·
-    **⚠️ ติดค้างขาเดียว: แปล AI จริง** — Z.ai ตอบ 429 Insufficient balance (ทุกโมเดล เครดิตบัญชีหมด) เทสจึงใช้
-    คำแปลจำลองแบบระบุชัด **พอเติมเครดิตแล้วรันซ้ำขา AI นี้** (สคริปต์เดิมติดไว้ ~ แค้มป์ตัว AI_SIMULATED)
+    ✅ **ขา AI จริงรันซ้ำผ่านแล้ว (1/11 · key ใหม่)** — S2 สมบูรณ์ 100% ไม่มีส่วนจำลอง:
+    ถอดเสียงจริง → แก้ transcript → **แปล AI จริง glm-4.5-flash** (52 วิ → "เจ้าพ่อประภาคารเก่าบอก") →
+    QA gate จริง → Thai Wrap จริง → Pack back → SRT ไทยเวลาตรงเดิม 4/4 cues · หมายเหตุ: แพ็กเกจของ key
+    ใหม่ครอบเฉพาะ glm-4.5-flash (glm-5.3/4.6 ยัง 429 — งาน production คุณภาพสูงควรเติมแพ็กเกจระดับสูงกว่า)
     · boot_test ผ่าน · ระหว่างพัฒนา: ติดตั้ง numpy ให้ venv (waveform ของ TVox ใช้ — ของเครื่อง ไม่แตะ repo)
 
 ## 9. ข้อจำกัดที่ทราบ (macOS)
