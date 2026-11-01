@@ -109,7 +109,5 @@ class ToolLauncher:
     def open_folder(cls, path):
         """Opens folder in Windows Explorer."""
         if os.path.exists(path):
-            if sys.platform == "win32":
-                os.startfile(os.path.abspath(path))
-            else:
-                subprocess.Popen(["xdg-open", path])
+            from core.open_utils import open_path
+            open_path(path)

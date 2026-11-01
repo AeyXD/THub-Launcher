@@ -1,3 +1,4 @@
+from core.open_utils import open_path
 from core.qt_tasks import BackgroundTasks
 import os
 import subprocess
@@ -511,10 +512,8 @@ class KnowledgeViewQt(QWidget):
         path = self.current_guide.get("path")
         if path and os.path.exists(path):
             folder = os.path.dirname(path)
-            try:
-                os.startfile(folder)
-            except Exception:
-                subprocess.Popen(f'explorer /select,"{path}"')
+            if not open_path(folder):
+                open_path(path)  # เปิดตัวไฟล์แทน ถ้าโฟลเดอร์เปิดไม่ได้
 
     def _copy_guide_path(self):
         if not self.current_guide:

@@ -1,3 +1,4 @@
+from core.open_utils import open_path
 from core.qt_tasks import BackgroundTasks
 import copy
 import os
@@ -2021,11 +2022,7 @@ class AIHelperViewQt(QWidget):
                 if dim_key == "logo":
                     self.lbl_art_status.setText(_("✨ โลโก้พร้อมใช้งาน: {fn} ({w}×{h})").format(fn=fn, w=w, h=h))
                     self.lbl_art_status.setStyleSheet("color: #c084fc; font-size: 10px; font-weight: bold;")
-                    try:
-                        import os
-                        os.startfile(os.path.normpath(fp))
-                    except Exception:
-                        pass
+                    open_path(fp)
                 else:
                     self.lbl_art_status.setText(_("✅ โหลด {lbl} สำเร็จ: {fn}").format(lbl=lbl, fn=fn))
                     self.lbl_art_status.setStyleSheet("color: #10b981; font-size: 10px;")

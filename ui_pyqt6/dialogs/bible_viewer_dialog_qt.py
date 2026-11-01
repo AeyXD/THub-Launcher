@@ -1,3 +1,4 @@
+from core.open_utils import open_path
 import os
 import subprocess
 from PyQt6.QtWidgets import (
@@ -237,7 +238,5 @@ class BibleViewerDialogQt(QDialog):
 
     def _open_external(self):
         if self.bible_path and os.path.exists(self.bible_path):
-            try:
-                os.startfile(self.bible_path)
-            except Exception as e:
-                QMessageBox.warning(self, "ข้อผิดพลาด", f"ไม่สามารถเปิดไฟล์ด้วยโปรแกรมภายนอกได้:\n{e}")
+            if not open_path(self.bible_path):
+                QMessageBox.warning(self, "ข้อผิดพลาด", "ไม่สามารถเปิดไฟล์ด้วยโปรแกรมภายนอกได้")

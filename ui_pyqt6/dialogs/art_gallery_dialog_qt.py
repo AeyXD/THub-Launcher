@@ -1,3 +1,4 @@
+from core.open_utils import open_path
 import os
 import subprocess
 import weakref
@@ -322,10 +323,8 @@ class ArtGalleryDialogQt(TaskDialogMixin, QDialog):
             target = os.path.join(self.workspace_path, "07_Image_Resources", "Official_Art")
             if not os.path.exists(target):
                 os.makedirs(target, exist_ok=True)
-            try:
-                os.startfile(target)
+            if open_path(target):
                 return
-            except Exception:
                 pass
         QMessageBox.information(self, _("แจ้งเตือน"), _("ไม่พบโฟลเดอร์ภาพสำหรับโปรเจกต์นี้"))
 
@@ -648,10 +647,8 @@ class ArtGalleryDialogQt(TaskDialogMixin, QDialog):
 
     def _open_full_image(self, image_path: str):
         if image_path and os.path.exists(image_path):
-            try:
-                os.startfile(image_path)
-            except Exception as e:
-                QMessageBox.warning(self, _("แจ้งเตือน"), _("ไม่สามารถเปิดภาพได้: {e}").format(e=str(e)))
+            if not open_path(image_path):
+                QMessageBox.warning(self, _("แจ้งเตือน"), "ไม่สามารถเปิดภาพได้")
 
     def _quick_download_dimension(self, dim_key: str):
         if self._harvest_in_progress or "harvest-artworks" in self.tasks.jobs:

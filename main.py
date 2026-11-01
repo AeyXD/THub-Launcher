@@ -3355,9 +3355,8 @@ _("*จัดระบบการจัดการโดย THub Launcher*")
             pass
 
     def open_project_folder(self, path):
-        if os.path.exists(path):
-            os.startfile(path)
-        else:
+        from core.open_utils import open_path
+        if not open_path(path):
             messagebox.showerror(_("Error"), f"ไม่พบโฟลเดอร์: {path}")
 
     def check_for_updates(self):

@@ -924,13 +924,15 @@ class TStudioCore:
 
         # 3. Locate hub_config.json & default workspace dir (Only reached if no active project context)
         hub_projects = []
-        default_ws_dir = 'E:\\Mod_Workspace'
+        # default workspace ตาม platform — เดิม hardcode E:\ (Windows ของเจ้าของเดิม)
+        default_ws_dir = 'E:\\Mod_Workspace' if sys.platform == 'win32' else os.path.expanduser('~/Mod_Workspace')
         possible_hub_cfgs = [
             os.path.join(BASE_DIR, '..', '..', '..', 'hub_config.json'),
             os.path.join(BASE_DIR, '..', '..', 'hub_config.json'),
             os.path.join(BASE_DIR, '..', 'hub_config.json'),
             os.path.join(BASE_DIR, 'hub_config.json'),
-            'E:\\Mod_Workspace\\Modder_project\\modder-hub\\hub_config.json'
+            'E:\\Mod_Workspace\\Modder_project\\modder-hub\\hub_config.json',
+            os.path.join(default_ws_dir, 'Modder_project', 'modder-hub', 'hub_config.json')
         ]
         for cfg_path in possible_hub_cfgs:
             norm_cfg = os.path.normpath(cfg_path)

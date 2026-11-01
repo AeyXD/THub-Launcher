@@ -1,3 +1,4 @@
+from core.open_utils import open_path
 from core.qt_tasks import BackgroundTasks, TaskDialogMixin
 import os
 import shutil
@@ -754,10 +755,8 @@ class CoverEditorDialogQt(TaskDialogMixin, QDialog):
 
     def _open_current_asset(self):
         if self.temp_cover_path and os.path.exists(self.temp_cover_path):
-            try:
-                os.startfile(os.path.normpath(self.temp_cover_path))
-            except Exception as e:
-                QMessageBox.warning(self, _("แจ้งเตือน"), str(e))
+            if not open_path(self.temp_cover_path):
+                QMessageBox.warning(self, _("แจ้งเตือน"), "เปิดไฟล์ไม่สำเร็จ")
 
     def _copy_current_asset_path(self):
         if self.temp_cover_path and os.path.exists(self.temp_cover_path):
