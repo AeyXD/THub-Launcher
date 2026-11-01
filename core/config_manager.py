@@ -25,7 +25,8 @@ class ConfigManager:
         "ai_cli_preset": "claude",
         "ai_cli_custom_cmd": "claude",
         "ai_cli_auto_copy": True,
-        "dashboard_card_size": "normal"
+        "dashboard_card_size": "normal",
+        "kb_external_path": ""
     }
 
     def __new__(cls, config_path=None):

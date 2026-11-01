@@ -48,6 +48,12 @@ development/                    ← เครื่องมือ dev: tests/, 
    `tools/flagship/Plugins/` เป็นของ **inert** ของ upstream (ไม่มีโค้ดเรียกใช้) — ห้ามเพิ่มเกมใหม่ที่นี่
    ให้เพิ่มที่ TFormat-Plugins (`Game_Extractors/`) แทน
 8. **ทดสอบก่อนส่งมอบ** — อย่างน้อย `python development/tests/boot_test.py` ต้องผ่านทั้งหมด
+9. **fork ↔ upstream** — push ได้เฉพาะ origin (`AeyXD/THub-Launcher`) · ส่งกลับ
+   `memolyviza2012-max/THub-Launcher` ด้วย PR เท่านั้น · **⛔ ต้องรอคำสั่งเจ้าของเท่านั้น —
+   ห้าม agent สร้าง/ส่ง/เตรียม branch สำหรับ PR เองไม่ว่ากรณีใด แม้งานจะ "พร้อมส่ง" แล้ว**
+   (กฎกลางของ workspace: `../AGENTS.md` ข้อ 1) · PR candidate ที่บันทึกไว้: บั๊ก PUA (upstream
+   PR #2 — รอ review), ลิงก์ index ของ Modding-Knowledge (ดู `.handover/HANDOVER.md`) —
+   รวบรวม candidate ได้เสมอ แต่ห้ามเริ่มเตรียม branch จนกว่าจะมีคำสั่ง
 
 ## คำสั่งที่ใช้บ่อย
 

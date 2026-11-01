@@ -19,8 +19,10 @@ class KnowledgeService:
           Tier 3: Similar Game Bibles from same engine (🎮)
     """
 
-    EXTERNAL_KB = r"E:\Mod_Workspace\Modding-Knowledge"
+    EXTERNAL_KB = r"E:\Mod_Workspace\Modding-Knowledge"  # legacy Windows default — resolve ทับได้ผ่าน env/config
     LOCAL_KB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Modding-Knowledge")
+    KB_ENV_VAR = "THUB_KB_PATH"          # env สำหรับชี้คลังภายนอก เช่นบนเครื่องอื่น/CI
+    KB_CONFIG_KEY = "kb_external_path"   # คีย์ config (ConfigManager) แบบเดียวกับคีย์อื่นของ Launcher
 
     ROMAN_MAP = {
         'i': 1, 'ii': 2, 'iii': 3, 'iv': 4, 'v': 5,
@@ -95,13 +97,26 @@ class KnowledgeService:
         """Convenience alias for get_instance()."""
         return cls.get_instance()
 
+    @classmethod
+    def _resolve_kb_root(cls):
+        """resolve ตำแหน่งคลังความรู้แบบพกพา (macOS/Windows/Linux) — หยุดที่ path แรกที่มีจริง:
+        env THUB_KB_PATH → config kb_external_path → legacy EXTERNAL_KB (เครื่อง Windows เดิม)
+        → LOCAL_KB ใน repo ตามเดิม"""
+        candidates = [os.environ.get(cls.KB_ENV_VAR, "").strip()]
+        try:
+            from core.config_manager import ConfigManager
+            candidates.append(str(ConfigManager().get(cls.KB_CONFIG_KEY) or "").strip())
+        except Exception:
+            pass
+        candidates.append(cls.EXTERNAL_KB)
+        candidates.append(cls.LOCAL_KB)
+        for cand in candidates:
+            if cand and os.path.isdir(cand):
+                return cand
+        return None
+
     def __init__(self):
-        if os.path.exists(self.EXTERNAL_KB):
-            self.root_kb = self.EXTERNAL_KB
-        elif os.path.exists(self.LOCAL_KB):
-            self.root_kb = self.LOCAL_KB
-        else:
-            self.root_kb = None
+        self.root_kb = self._resolve_kb_root()
 
         # Readers use a published catalog while a replacement is built in isolation.
         # The tuple swap publishes all three collections and their cache atomically.
