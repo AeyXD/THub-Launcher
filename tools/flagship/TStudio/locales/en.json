@@ -552,12 +552,15 @@
   "tw_settings_cli": "5. ✂️ Thai Wrap CLI (optional):",
   "tw_settings_cli_ph": "path to the thaiwrap CLI, e.g. .../publish/osx-arm64/ThaiWrap.Cli",
   "tw_settings_mode": "Thai Wrap mode:",
-  "tw_mode_hint": "zwsp = general (zero-width space at Thai word joints) · hairspace = Scaleform/Flash engines (e.g. Witcher 3) · space = engines that only break on real spaces (Aurora/W1) · off = disabled · wrapping happens at deploy time only — your working CSV stays clean (no ZWSP)",
+  "tw_mode_hint": "auto = pick automatically (line_break of the bound Game Tool → extension table → zwsp) · zwsp = general · hairspace = Scaleform/Flash engines (e.g. Witcher 3) · space = engines that only break on real spaces (Aurora/W1) · off = disabled · wrapping happens at deploy time only — your working CSV stays clean (no ZWSP)",
   "tw_warn_no_cli": "Thai Wrap mode is on but the CLI path is not set — deploys will run unwrapped with a notice",
   "tw_cli_missing": "Thai Wrap mode is on but the CLI was not found at the configured path — deploying without wrap this time",
   "tw_wrapping": "Thai Wrapping (inserting line-break points)…",
   "tw_applied_status": "Thai Wrap applied (mode {mode}) — deploying from a temp copy; working file stays clean",
   "tw_failed": "thaiwrap failed:\n{msg}\n\nCancel the deploy, or continue without wrapping?",
   "tw_deploy_unwrapped": "Deploy without wrap",
-  "tw_deploying_unwrapped": "Continuing deploy without wrap"
+  "tw_deploying_unwrapped": "Continuing deploy without wrap",
+  "tw_resolved_gametool": "Thai Wrap: auto → {mode} (from Game Tool{game})",
+  "tw_resolved_ext": "Thai Wrap: auto → {mode} (by file type)",
+  "tw_resolved_default": "Thai Wrap: auto → {mode} (default)"
 }

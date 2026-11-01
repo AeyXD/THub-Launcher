@@ -508,7 +508,7 @@ class SettingsDialog(QDialog):
         form_layout.addRow(_("tw_settings_cli"), tw_row)
 
         self.cbo_thaiwrap_mode = QComboBox()
-        self.cbo_thaiwrap_mode.addItems(["off", "zwsp", "hairspace", "space"])
+        self.cbo_thaiwrap_mode.addItems(["auto", "off", "zwsp", "hairspace", "space"])
         self.cbo_thaiwrap_mode.setToolTip(_("tw_mode_hint"))
         form_layout.addRow(_("tw_settings_mode"), self.cbo_thaiwrap_mode)
 
@@ -985,7 +985,7 @@ class SettingsDialog(QDialog):
             self.chk_qa_gate.setChecked(bool(data.get("qa_gate_before_deploy", False)))
             self.txt_thaiwrap_cli.setText(data.get("thaiwrap_cli_path", ""))
             tw_mode = str(data.get("thaiwrap_mode", "off")).lower()
-            self.cbo_thaiwrap_mode.setCurrentText(tw_mode if tw_mode in ("off", "zwsp", "hairspace", "space") else "off")
+            self.cbo_thaiwrap_mode.setCurrentText(tw_mode if tw_mode in ("auto", "off", "zwsp", "hairspace", "space") else "off")
 
             self._update_active_tab_notice()
         except Exception as e:

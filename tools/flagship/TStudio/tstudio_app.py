@@ -7705,17 +7705,22 @@ class TranslationStudio(QMainWindow):
             deploy_source = self.csv_path
             try:
                 import tstudio_thaiwrap as _tw
-                _tw_mode = str(cfg.get("thaiwrap_mode", "off")).lower()
-                if _tw_mode != "off":
+                _tw_cfg_mode = str(cfg.get("thaiwrap_mode", "off")).lower()
+                if _tw_cfg_mode != "off":
                     _tw_cli = _tw.find_cli(cfg)
                     if not _tw_cli:
                         QMessageBox.warning(self, _("tw_title"), _("tw_cli_missing"))
                     else:
+                        # ระยะสอง: resolve โหมด (auto → line_break ของ Game Tool → ตารางนามสกุล → zwsp)
+                        _tw_mode, _tw_src = _tw.resolve_mode(cfg, cfg.get("origin_file", ""))
                         _tw_ok, _tw_res = self._run_game_tool_with_progress(
                             lambda: _tw.wrap_csv(_tw_cli, self.csv_path, _tw_mode), _("tw_wrapping"))
                         if _tw_ok:
                             deploy_source = _tw_res
-                            self.statusBar().showMessage(_("tw_applied_status", mode=_tw_mode), 4000)
+                            # UI โปร่งใส: auto แสดงค่าที่ resolve + ที่มา / โหมดเจาะจงแสดงตามเดิม
+                            _tw_msg = _tw.resolved_message(_tw_mode, _tw_src) or _("tw_applied_status", mode=_tw_mode)
+                            self.statusBar().showMessage(_tw_msg, 6000)
+                            print(f"ThaiWrap: {_tw_msg}")
                         else:
                             # exit ≠ 0 → แสดง stderr + ให้เลือก ยกเลิก / deploy ต่อแบบไม่ wrap (ห้ามเงียบ)
                             _tw_box = QMessageBox(self)
