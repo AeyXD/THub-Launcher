@@ -258,6 +258,14 @@ if HAS_TSTUDIO:
             panel_layout.addWidget(self.btn_mark_b)
             panel_layout.addWidget(self.btn_loop)
 
+            # Whisper ถอดเสียงเป็นซับร่าง (spec-vox-whisper.md Phase S2) — ผ่าน thaistt CLI
+            self.btn_stt = QPushButton("\U0001f9ec")
+            self.btn_stt.setToolTip(_("stt_btn_tooltip"))
+            self.btn_stt.setStyleSheet("background: transparent; color: #89b4fa; font-size: 15px; border: none; padding: 2px;")
+            self.btn_stt.clicked.connect(self.open_stt_dialog)
+            panel_layout.addWidget(self.btn_stt)
+            self.refresh_stt_btn_state()
+
             self.video_layout.addWidget(self.panel_widget)
             
             self.video_dock.setWidget(self.video_container)
@@ -487,6 +495,219 @@ if HAS_TSTUDIO:
                                         })
                 except Exception as e:
                     print(f"Failed to load subtitle timing metadata: {e}")
+
+        # ─────────── Whisper ถอดเสียงเป็นซับ (spec-vox-whisper.md Phase S2) ───────────
+
+        def refresh_stt_btn_state(self):
+            """ปุ่ม STT เปิดก็ต่อเมื่อตั้ง stt_cli_path — ไม่ตั้ง → disabled + tooltip แนะนำ"""
+            from tstudio_core import TStudioCore
+            from tvox_stt import find_stt_cli
+            try:
+                cli = find_stt_cli(TStudioCore.load_config())
+            except Exception:
+                cli = None
+            self.btn_stt.setEnabled(cli is not None)
+            self.btn_stt.setToolTip(_("stt_btn_tooltip") if cli else _("stt_btn_disabled_tooltip"))
+
+        def changeEvent(self, event):
+            """รีเฟรชสถานะปุ่ม STT ทุกครั้งที่หน้าต่างกลับมา active (เช่นปิด Settings แล้ว)"""
+            super().changeEvent(event)
+            if event.type() == event.Type.WindowActivate and hasattr(self, "btn_stt"):
+                self.refresh_stt_btn_state()
+
+        def open_stt_dialog(self):
+            from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QDialogButtonBox
+            from tstudio_core import TStudioCore
+            from tvox_stt import find_stt_cli, ab_range, LANGS, MEDIA_EXTS
+
+            cli = find_stt_cli(TStudioCore.load_config())
+            if not cli:
+                QMessageBox.information(self, _("stt_need_setup_title"), _("stt_need_setup_msg"))
+                return
+
+            dlg = QDialog(self)
+            dlg.setWindowTitle(_("stt_dialog_title"))
+            form = QFormLayout(dlg)
+
+            # แหล่ง: ไฟล์ที่เปิดอยู่ในเครื่องเล่น หรือเลือกไฟล์ใหม่
+            playing = None
+            try:
+                playing = self.player.path if (self.player and getattr(self.player, "path", None)) else None
+            except Exception:
+                playing = None
+            self.cbo_stt_source = QComboBox()
+            if playing:
+                self.cbo_stt_source.addItem(_("stt_source_current", name=os.path.basename(playing)), playing)
+            self.cbo_stt_source.addItem(_("stt_source_pick"), "__pick__")
+            if not playing:
+                self.cbo_stt_source.setCurrentIndex(len(self.cbo_stt_source) - 1)
+            form.addRow(_("stt_source"), self.cbo_stt_source)
+
+            # ช่วงเวลา: ทั้งไฟล์ หรือ A–B ตามตำแหน่งเครื่องเล่นที่ mark ไว้
+            self.cbo_stt_range = QComboBox()
+            self.cbo_stt_range.addItem(_("stt_range_full"), None)
+            rab = ab_range(self.mark_a, self.mark_b)
+            if rab:
+                self.cbo_stt_range.addItem(_("stt_range_ab", a=self.format_time(self.mark_a), b=self.format_time(self.mark_b)), rab)
+            form.addRow(_("stt_range"), self.cbo_stt_range)
+
+            self.cbo_stt_lang = QComboBox()
+            self.cbo_stt_lang.addItems(list(LANGS))
+            form.addRow(_("stt_lang"), self.cbo_stt_lang)
+
+            buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+            buttons.accepted.connect(dlg.accept)
+            buttons.rejected.connect(dlg.reject)
+            form.addRow(buttons)
+            if dlg.exec() != QDialog.DialogCode.Accepted:
+                return
+
+            media = self.cbo_stt_source.currentData()
+            if media == "__pick__":
+                flt = _("stt_media_filter", exts=" ".join("*" + e for e in MEDIA_EXTS))
+                media, _sel = QFileDialog.getOpenFileName(self, _("stt_source_pick"), "", flt)
+            if not media or media == "__pick__":
+                return
+
+            out_srt = __import__("tvox_stt").draft_path_for(media)
+            if os.path.exists(out_srt):
+                reply = QMessageBox.question(self, _("stt_dialog_title"),
+                                             _("stt_overwrite_confirm", file=os.path.basename(out_srt)),
+                                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if reply != QMessageBox.StandardButton.Yes:
+                    return
+
+            duration = None
+            try:
+                if playing and os.path.abspath(media) == os.path.abspath(playing):
+                    duration = getattr(self.player, "duration", None)
+            except Exception:
+                duration = None
+            self._start_thaistt(media, self.cbo_stt_lang.currentText(),
+                                self.cbo_stt_range.currentData(), duration)
+
+        def _start_thaistt(self, media, lang, range_ab, duration):
+            """รัน thaistt ผ่าน QProcess + QProgressDialog (ยกเลิกได้ + timeout + progress จาก stderr)"""
+            from PyQt6.QtWidgets import QProgressDialog
+            from PyQt6.QtCore import QProcess, QTimer
+            from tstudio_core import TStudioCore
+            from tvox_stt import find_stt_cli, build_cmd, timeout_for, PROGRESS_RE
+
+            cli = find_stt_cli(TStudioCore.load_config())
+            if not cli:
+                QMessageBox.information(self, _("stt_need_setup_title"), _("stt_need_setup_msg"))
+                return
+            self._stt_out_srt = __import__("tvox_stt").draft_path_for(media)
+            self._stt_cancelled = False
+
+            prog = QProgressDialog(_("stt_running", file=os.path.basename(media)), _("stt_cancel_btn"), 0, 100, self)
+            prog.setWindowTitle(_("stt_dialog_title"))
+            prog.setMinimumDuration(200)
+            prog.setWindowModality(Qt.WindowModality.WindowModal)
+
+            self._stt_proc = QProcess(self)
+            self._stt_proc.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)
+
+            self._stt_tail = []
+
+            def on_ready():
+                while self._stt_proc.canReadLine():
+                    line = bytes(self._stt_proc.readLine()).decode("utf-8", errors="ignore").strip()
+                    if line:
+                        # เก็บท้าย 6 บรรทัดไว้โชว์ตอนพัง (บรรทัดที่อ่านไปแล้ว QProcess คืนไม่ได้)
+                        self._stt_tail = (self._stt_tail + [line])[-6:]
+                    m = PROGRESS_RE.search(line)
+                    if m:
+                        prog.setLabelText(_("stt_running_pct", pct=m.group(1), file=os.path.basename(media)))
+                        prog.setValue(min(99, int(m.group(1))))
+
+            def on_done(exit_code):
+                self._stt_kill_timer.stop()
+                prog.reset()
+                prog.close()
+                self._on_stt_finished(exit_code)
+
+            def on_cancel():
+                self._stt_cancelled = True
+                if self._stt_proc.state() != QProcess.ProcessState.NotRunning:
+                    self._stt_proc.kill()
+
+            def on_error(err):
+                # โปรแกรมเริ่มไม่ได้ (path หาย ฯลฯ) — QProcess จะไม่ยิง finished ต้องปิด dialog เอง
+                if err != type(self._stt_proc).ProcessError.Crashed and self._stt_proc.state() == type(self._stt_proc).ProcessState.NotRunning:
+                    self._stt_kill_timer.stop()
+                    prog.reset()
+                    prog.close()
+                    self._on_stt_finished(-1)
+
+            self._stt_proc.readyReadStandardOutput.connect(on_ready)
+            self._stt_proc.finished.connect(on_done)
+            self._stt_proc.errorOccurred.connect(on_error)
+            prog.canceled.connect(on_cancel)
+
+            self._stt_kill_timer = QTimer(self)
+            self._stt_kill_timer.setSingleShot(True)
+            self._stt_kill_timer.timeout.connect(on_cancel)
+            self._stt_kill_timer.start(timeout_for(duration) * 1000)
+
+            argv = build_cmd(cli, media, lang, self._stt_out_srt, range_ab)
+            prog.setValue(0)
+            self._stt_proc.start(argv[0], argv[1:])
+
+        def _cancel_stt(self):
+            """ยกเลิกจากภายนอก (ใช้ในการทดสอบ/ปิดโปรแกรม)"""
+            if getattr(self, "_stt_proc", None) and self._stt_proc.state() != type(self._stt_proc).ProcessState.NotRunning:
+                self._stt_cancelled = True
+                self._stt_proc.kill()
+
+        def _on_stt_finished(self, exit_code):
+            from PyQt6.QtGui import QDesktopServices
+            from PyQt6.QtCore import QUrl
+            out_srt = getattr(self, "_stt_out_srt", "")
+
+            if getattr(self, "_stt_cancelled", False) or not (exit_code == 0 and out_srt and os.path.isfile(out_srt)):
+                tail = "\n".join(getattr(self, "_stt_tail", []) or [])[-500:]
+                msg = _("stt_timeout_msg") if getattr(self, "_stt_cancelled", False) else _("stt_failed_msg", code=exit_code)
+                QMessageBox.warning(self, _("stt_dialog_title"), msg + ("\n\n" + tail if tail else ""))
+                return
+
+            box = QMessageBox(self)
+            box.setWindowTitle(_("stt_done_title"))
+            box.setIcon(QMessageBox.Icon.Information)
+            box.setText(_("stt_done_msg", file=os.path.basename(out_srt)) + "\n\n" + _("stt_workflow_warning"))
+            btn_table = box.addButton(_("stt_open_in_table"), QMessageBox.ButtonRole.YesRole)
+            btn_srt = box.addButton(_("stt_open_srt"), QMessageBox.ButtonRole.ActionRole)
+            box.addButton(QMessageBox.StandardButton.Close)
+            box.exec()
+            if box.clickedButton() is btn_table:
+                self.open_draft_in_table(out_srt)
+            elif box.clickedButton() is btn_srt:
+                QDesktopServices.openUrl(QUrl.fromLocalFile(out_srt))
+
+        def open_draft_in_table(self, srt_path):
+            """SRT ร่าง → ตาราง TStudio ผ่าน Game Tool Subtitles (CSV กลาง + origin_file อัตโนมัติ)"""
+            import tstudio_game_tools as gt
+            from tstudio_core import TStudioCore
+
+            manifest = gt.installed_tools().get("Subtitles")
+            if not manifest:
+                QMessageBox.information(self, _("stt_dialog_title"), _("stt_need_subtitles_tool"))
+                return
+            csv_out = os.path.splitext(srt_path)[0] + ".csv"
+            ok, out = self._run_game_tool_with_progress(
+                lambda: gt.unpack(manifest, srt_path, csv_out), _("stt_unpacking"))
+            if not ok:
+                QMessageBox.critical(self, _("stt_dialog_title"), _("stt_failed_msg", code=out[:300]))
+                return
+            try:
+                cfg = TStudioCore.load_config()
+                cfg["origin_file"] = srt_path
+                TStudioCore.save_config(cfg)
+            except Exception as e:
+                print(f"STT: บันทึก origin_file ไม่ได้ — {e}")
+            self.csv_path = csv_out
+            self._load_csv()
+            self.statusBar().showMessage(_("stt_opened_status", csv=os.path.basename(csv_out), n=len(self.model._data)), 6000)
 
         def open_video(self):
             if not self.player: return
@@ -812,4 +1033,4 @@ def main():
     sys.exit(app.exec())
 
 if __name__ == "__main__":
-    main()
+    main()

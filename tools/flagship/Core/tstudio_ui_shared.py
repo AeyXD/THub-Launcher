@@ -517,6 +517,18 @@ class SettingsDialog(QDialog):
         lbl_tw_hint.setStyleSheet("color: #a6adc8; font-size: 11px; background: transparent;")
         form_layout.addRow("", lbl_tw_hint)
 
+        # Whisper ถอดเสียงเป็นซับ (spec-vox-whisper.md Phase S2) — ใช้ใน TVox
+        self.txt_stt_cli = QLineEdit()
+        self.txt_stt_cli.setPlaceholderText(_("stt_settings_cli_ph"))
+        btn_stt_browse = QPushButton("…")
+        btn_stt_browse.setFixedWidth(34)
+        btn_stt_browse.clicked.connect(self._browse_stt_cli)
+        stt_row = QHBoxLayout()
+        stt_row.setContentsMargins(0, 0, 0, 0)
+        stt_row.addWidget(self.txt_stt_cli, 1)
+        stt_row.addWidget(btn_stt_browse)
+        form_layout.addRow(_("stt_settings_cli"), stt_row)
+
         tab_active_layout.addLayout(form_layout)
 
         # Active provider key status banner
@@ -984,6 +996,7 @@ class SettingsDialog(QDialog):
             self.txt_qa_checker.setText(data.get("qa_checker_path", ""))
             self.chk_qa_gate.setChecked(bool(data.get("qa_gate_before_deploy", False)))
             self.txt_thaiwrap_cli.setText(data.get("thaiwrap_cli_path", ""))
+            self.txt_stt_cli.setText(data.get("stt_cli_path", ""))
             tw_mode = str(data.get("thaiwrap_mode", "off")).lower()
             self.cbo_thaiwrap_mode.setCurrentText(tw_mode if tw_mode in ("auto", "off", "zwsp", "hairspace", "space") else "off")
 
@@ -1020,6 +1033,7 @@ class SettingsDialog(QDialog):
         data["qa_checker_path"] = self.txt_qa_checker.text().strip()
         data["qa_gate_before_deploy"] = self.chk_qa_gate.isChecked()
         data["thaiwrap_cli_path"] = self.txt_thaiwrap_cli.text().strip()
+        data["stt_cli_path"] = self.txt_stt_cli.text().strip()
         data["thaiwrap_mode"] = self.cbo_thaiwrap_mode.currentText()
         # เตือนตอนเซฟ: เปิดโหมดแต่ยังไม่ได้ตั้ง path (deploy จะทำงานแบบไม่ wrap พร้อมแจ้งเตือน)
         if data["thaiwrap_mode"] != "off" and not data["thaiwrap_cli_path"]:
@@ -1033,6 +1047,12 @@ class SettingsDialog(QDialog):
         path, _sel = QFileDialog.getOpenFileName(self, _("qa_settings_checker"), "", "Python (*.py);;All Files (*.*)")
         if path:
             self.txt_qa_checker.setText(path)
+
+    def _browse_stt_cli(self):
+        # thaistt เป็นสคริปต์ python/binary — ไม่กรองนามสกุล (macOS/linux ไม่มีนามสกุล, Windows เป็น .exe)
+        path, _sel = QFileDialog.getOpenFileName(self, _("stt_settings_cli"), "", "All Files (*);;Executable (*.exe);;Python (*.py)")
+        if path:
+            self.txt_stt_cli.setText(path)
 
     def _browse_thaiwrap_cli(self):
         # thaiwrap CLI เป็น binary ของ dotnet — ไม่กรองนามสกุล (macOS/linux ไม่มีนามสกุล, Windows เป็น .exe)

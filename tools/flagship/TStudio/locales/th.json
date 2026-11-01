@@ -562,5 +562,7 @@
   "tw_deploying_unwrapped": "ดำเนินการ deploy ต่อแบบไม่ wrap",
   "tw_resolved_gametool": "Thai Wrap: auto → {mode} (จาก Game Tool{game})",
   "tw_resolved_ext": "Thai Wrap: auto → {mode} (ตามชนิดไฟล์)",
-  "tw_resolved_default": "Thai Wrap: auto → {mode} (ค่าเริ่มต้น)"
+  "tw_resolved_default": "Thai Wrap: auto → {mode} (ค่าเริ่มต้น)",
+  "stt_settings_cli": "6. 🎙️ thaistt CLI (ถอดเสียง Whisper — ใช้ใน TVox):",
+  "stt_settings_cli_ph": "path ถึง thaistt เช่น .../Playgound/thaistt/thaistt.py — ตัวมันจัดการ ffmpeg/โมเดลเอง"
 }
