@@ -135,6 +135,14 @@ python3.12 -m venv .venv
 # thaiwrap: Playgound/thaiwrap (build หรือโหลด publish/osx-arm64)
 # thaistt:  Playgound/thaistt (Python stdlib + whisper.cpp จาก brew)
 # GLQA:     THub Studio/game-localization-qa (Python stdlib)
+
+# External game tools บน macOS:
+# ✅ ติดตั้งแล้ว: pylocres (venv) · QuickBMS (/opt/homebrew/bin/quickbms)
+#                ffmpeg · whisper-cpp (brew)
+# ❌ ไม่มี mac build ทางการ — ใช้ทางเลือกแทน:
+#   repak → TPakManager (built-in) หรือ QuickBMS · ติดตั้งจริง: cargo install repak-cli
+#   FModel → QuickBMS (extract ได้เหมือนกัน) · build จาก dotnet ถ้าจำเป็น
+#   UTMT / ttarchext → Windows .exe เท่านั้น
 ```
 
 ## จุดที่มักพลาด (เคยเกิดแล้วจริง)
