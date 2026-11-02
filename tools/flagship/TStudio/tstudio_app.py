@@ -107,9 +107,10 @@ PROMPTS_PATH = os.path.join(BASE_DIR, "prompts.json")
 
 TOP_BAR_SUBMODELS = {
     "Z.ai (GLM)": [
-        ("glm-4.6 (GLM-4.6 แนะนำ คุณภาพแปลสูง)", "glm-4.6"),
-        ("glm-4.5-air (ประหยัด/เร็ว)", "glm-4.5-air"),
-        ("glm-4.5-flash (เร็ว/ถูกที่สุด)", "glm-4.5-flash"),
+        ("glm-5.3 (Flagship — คุณภาพสูงสุด สำหรับบรรทัดสำคัญ/ศัพท์เฉพาะ)", "glm-5.3"),
+        ("glm-5.3-flash (แนะนำ — คุ้มสุดสำหรับ batch)", "glm-5.3-flash"),
+        ("glm-5.3-flashx (เร็วสุด/ถูกสุด — ทดสอบ/ร่างแรก)", "glm-5.3-flashx"),
+        ("glm-4.7 (สำรอง — เสถียร)", "glm-4.7"),
         ("✏️ กำหนดชื่อโมเดลเอง (Custom)...", "__custom__"),
     ],
     "DeepSeek": [
