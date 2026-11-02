@@ -219,6 +219,8 @@ __marimo__/
 
 
 # Sensitive Configs
+# HANDOVER อยู่ใน repo รวม (symlink ไม่ track)
+.handover
 hub_config.json
 # สภาพแวดล้อมส่วนตัวของเครื่อง (IP เครือข่ายบ้าน, GPU farm, conversation id)
 Modding-Knowledge/Techniques/PROJECT_STATE.json
