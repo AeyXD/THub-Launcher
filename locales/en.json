@@ -627,5 +627,6 @@
   "about_fork_owner_head": "Fork Owner & Lead Developer (AeyXD Edition)",
   "about_fork_desc": "Game Localization & Modding Hub — macOS port · Z.ai (GLM) · Game Tools · Thai Wrap · Whisper",
   "about_upstream_credit_head": "Built on (upstream) — with thanks to the original author",
-  "about_upstream_repo_btn": "📦 upstream: memolyviza2012-max/THub-Launcher"
+  "about_upstream_repo_btn": "📦 upstream: memolyviza2012-max/THub-Launcher",
+  "tool_badge_windows": "🪟 Windows only"
 }

@@ -202,6 +202,13 @@ python development/tests/boot_test.py
     ถ้าอนาคตต้องการควบคุมค่อย fork+สลับแบบ plugin source (บันทึกเป็นการตัดสินใจแล้ว ไม่ใช่งานค้าง) ·
     (ค) **flagship_list.json ลบแล้ว** — dead file ไม่มีโค้ดอ่านทั้ง repo (ตรวจก่อนลบ) · **PR candidate:
     เสนอให้ upstream ลบไฟล์นี้ด้วย** (ตามกฎ ⛔ ยังไม่เตรียม branch จนกว่าจะมีคำสั่ง)
+    · (ง-a) **Tool Library OS-aware** — TOOL_REGISTRY ทุกรายการมี field `"os"` (FModel = win+mac ·
+    อีก 12 ตัว = win-only ตามที่ระบุ) · บน macOS: การ์ด win-only แสดง badge "🪟 เฉพาะ Windows" +
+    ปุ่มโหลด disabled (เห็นได้ กดไม่ได้ ลิงก์เว็บยังใช้ได้) · Windows ทำงานเหมือนเดิมทุกอย่าง ·
+    (ง-b) **ffmpeg บน macOS** — `ffmpeg_utils.ensure_ffmpeg` เมื่อ PATH ไม่มี → dialog แนะนำ
+    `brew install ffmpeg` + ปุ่มคัดลอกคำสั่ง (ห้ามเสนอโหลด build Windows GyanD บน mac) ·
+    Windows flow ทางเดิมไม่แตะ · i18n +1 คีย์ th/en ·
+    **PR candidate: ข้อ (ง) ทั้งสองเป็นสิ่งที่ดีสำหรับ upstream ด้วย** (ตามกฎ ⛔ ยังไม่เตรียม branch)
 
 ## 9. ข้อจำกัดที่ทราบ (macOS)
 

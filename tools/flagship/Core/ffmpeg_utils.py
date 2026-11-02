@@ -41,7 +41,26 @@ def ensure_ffmpeg(parent_widget):
     path = get_ffmpeg_path()
     if path:
         return path
-        
+
+    # macOS: ห้ามเสนอโหลด build ของ Windows (GyanD) — แนะนำติดตั้งผ่าน Homebrew แทน
+    if sys.platform == "darwin":
+        from PyQt6.QtWidgets import QApplication as _QApp
+        box = QMessageBox(parent_widget)
+        box.setWindowTitle("FFmpeg Required")
+        box.setIcon(QMessageBox.Icon.Information)
+        box.setText("ระบบต้องใช้ FFmpeg ในการสร้างคลื่นเสียงและระบบ AI แกะซับ\n\n"
+                    "บน macOS ติดตั้งผ่าน Homebrew:\n\n"
+                    "    brew install ffmpeg\n\n"
+                    "ติดตั้งเสร็จแล้วปิด-เปิดโปรแกรมใหม่อีกครั้ง")
+        btn_copy = box.addButton("คัดลอกคำสั่ง", QMessageBox.ButtonRole.ActionRole)
+        box.addButton(QMessageBox.StandardButton.Close)
+        box.exec()
+        if box.clickedButton() is btn_copy:
+            cb = _QApp.clipboard()
+            if cb:
+                cb.setText("brew install ffmpeg")
+        return None
+
     reply = QMessageBox.question(
         parent_widget,
         "FFmpeg Required",

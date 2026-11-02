@@ -361,27 +361,29 @@ UPDATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "updates.json")
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hub_config.json")
 KNOWLEDGE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Modding-Knowledge"))
 
+# "os" = แพลตฟอร์มที่เครื่องมือมี build จริง — การ์ดของเครื่องมือที่ OS ปัจจุบันไม่รองรับจะถูกหรี่
+# (badge "เฉพาะ Windows" + ปุ่มโหลดกดไม่ได้) · เติม "mac" รายเครื่องมือเมื่อยืนยัน build mac จริง
 TOOL_REGISTRY = {
     "Unreal Engine": [
-        {"name": "FModel", "desc": "โปรแกรมเปิดไฟล์ .pak ของ Unreal Engine", "github": "4sval/FModel"},
-        {"name": "UnrealPakTool", "desc": "เครื่องมือแพ็ก/แตกไฟล์ .pak", "url": "https://fluffyquack.com/tools/"},
-        {"name": "UAssetGUI", "desc": "แก้ไขไฟล์ UAsset ทะลุทะลวง", "github": "atenfyr/UAssetGUI"}
+        {"name": "FModel", "desc": "โปรแกรมเปิดไฟล์ .pak ของ Unreal Engine", "github": "4sval/FModel", "os": ["win", "mac"]},
+        {"name": "UnrealPakTool", "desc": "เครื่องมือแพ็ก/แตกไฟล์ .pak", "url": "https://fluffyquack.com/tools/", "os": ["win"]},
+        {"name": "UAssetGUI", "desc": "แก้ไขไฟล์ UAsset ทะลุทะลวง", "github": "atenfyr/UAssetGUI", "os": ["win"]}
     ],
     "Unity": [
-        {"name": "AssetStudio", "desc": "เครื่องมือแกะไฟล์ Unity สุดฮิต", "github": "Perfare/AssetStudio"},
-        {"name": "UnityCN-EasyTool", "desc": "เครื่องมือแพ็ก/แตกไฟล์ Asset ของ Unity ครบวงจร", "github": "memolyviza2012-max/UnityCN-EasyTool"},
-        {"name": "UABE", "desc": "Unity Asset Bundle Extractor", "github": "SeriousCache/UABE"},
-        {"name": "XUnity.AutoTranslator", "desc": "แปลภาษาเกม Unity ดึงจอแบบสดๆ", "github": "bbepis/XUnity.AutoTranslator"}
+        {"name": "AssetStudio", "desc": "เครื่องมือแกะไฟล์ Unity สุดฮิต", "github": "Perfare/AssetStudio", "os": ["win"]},
+        {"name": "UnityCN-EasyTool", "desc": "เครื่องมือแพ็ก/แตกไฟล์ Asset ของ Unity ครบวงจร", "github": "memolyviza2012-max/UnityCN-EasyTool", "os": ["win"]},
+        {"name": "UABE", "desc": "Unity Asset Bundle Extractor", "github": "SeriousCache/UABE", "os": ["win"]},
+        {"name": "XUnity.AutoTranslator", "desc": "แปลภาษาเกม Unity ดึงจอแบบสดๆ", "github": "bbepis/XUnity.AutoTranslator", "os": ["win"]}
     ],
     "RE Engine & Frostbite": [
-        {"name": "Fluffy Mod Manager", "desc": "โปรแกรมจัดการม็อดเกมค่าย Capcom", "direct_zip": "https://fluffyquack.com/tools/modmanager.zip", "url": "https://www.fluffyquack.com/"},
-        {"name": "RETool", "desc": "เครื่องมือบีบอัด/แตกไฟล์ RE Engine", "url": "https://residentevilmodding.boards.net/"},
-        {"name": "Frosty Toolsuite", "desc": "เครื่องมือสำหรับ Frostbite Engine", "url": "https://frostytoolsuite.com/"}
+        {"name": "Fluffy Mod Manager", "desc": "โปรแกรมจัดการม็อดเกมค่าย Capcom", "direct_zip": "https://fluffyquack.com/tools/modmanager.zip", "url": "https://www.fluffyquack.com/", "os": ["win"]},
+        {"name": "RETool", "desc": "เครื่องมือบีบอัด/แตกไฟล์ RE Engine", "url": "https://residentevilmodding.boards.net/", "os": ["win"]},
+        {"name": "Frosty Toolsuite", "desc": "เครื่องมือสำหรับ Frostbite Engine", "url": "https://frostytoolsuite.com/", "os": ["win"]}
     ],
     "General / Text Editors": [
-        {"name": "QuickBMS", "desc": "สคริปต์สกัดไฟล์ครอบจักรวาล", "direct_zip": "http://aluigi.altervista.org/papers/quickbms.zip", "url": "http://aluigi.altervista.org/quickbms.htm"},
-        {"name": "HxD (Hex Editor)", "desc": "แก้ไขไฟล์ไบนารีและเจาะโค้ดขั้นสูง", "url": "https://mh-nexus.de/en/hxd/"},
-        {"name": "Notepad++", "desc": "ตัวเปิดไฟล์ข้อความที่นักม็อดต้องมี", "github": "notepad-plus-plus/notepad-plus-plus"}
+        {"name": "QuickBMS", "desc": "สคริปต์สกัดไฟล์ครอบจักรวาล", "direct_zip": "http://aluigi.altervista.org/papers/quickbms.zip", "url": "http://aluigi.altervista.org/quickbms.htm", "os": ["win"]},
+        {"name": "HxD (Hex Editor)", "desc": "แก้ไขไฟล์ไบนารีและเจาะโค้ดขั้นสูง", "url": "https://mh-nexus.de/en/hxd/", "os": ["win"]},
+        {"name": "Notepad++", "desc": "ตัวเปิดไฟล์ข้อความที่นักม็อดต้องมี", "github": "notepad-plus-plus/notepad-plus-plus", "os": ["win"]}
     ]
 }
 
@@ -3778,9 +3780,21 @@ del "%~f0"
         if not fav_list:
             ctk.CTkLabel(tab_fav, text=_("ยังไม่มีเครื่องมือโปรด กด ⭐ ที่เครื่องมือเพื่อเพิ่มมาไว้หน้านี้"), text_color="gray").pack(pady=20)
 
+    def tool_runs_on_this_os(self, tool_data):
+        """เครื่องมือนี้มี build สำหรับ OS ปัจจุบันไหม (ไม่ระบุ os = สมมติใช้ได้ทุก platform)"""
+        supported = tool_data.get("os")
+        if not supported:
+            return True
+        if sys.platform == "win32":
+            return "win" in supported
+        if sys.platform == "darwin":
+            return "mac" in supported
+        return True  # อื่น ๆ ยังไม่มีการจำกัด
+
     def build_tool_row(self, parent_frame, tool_data, fav_list, is_custom=False, is_fav_tab=False):
         tool_name = tool_data["name"]
         description = _(tool_data["desc"])
+        runs_here = self.tool_runs_on_this_os(tool_data) if not is_custom else True
         
         row = ctk.CTkFrame(parent_frame, fg_color="transparent")
         row.pack(fill="x", pady=5)
@@ -3792,7 +3806,12 @@ del "%~f0"
         btn_star.grid(row=0, column=0, padx=(5, 0), pady=5)
         
         ctk.CTkLabel(row, text=tool_name, font=ctk.CTkFont(weight="bold", size=16), width=150, anchor="w").grid(row=0, column=1, padx=10, pady=5)
-        ctk.CTkLabel(row, text=description, text_color="gray", anchor="w").grid(row=0, column=2, padx=10, pady=5, sticky="w")
+        desc_frame = ctk.CTkFrame(row, fg_color="transparent")
+        desc_frame.grid(row=0, column=2, padx=10, pady=5, sticky="w")
+        ctk.CTkLabel(desc_frame, text=description, text_color="gray", anchor="w").pack(side="left")
+        if not runs_here:
+            ctk.CTkLabel(desc_frame, text=_("tool_badge_windows"), text_color="#fab387",
+                         font=ctk.CTkFont(size=11, weight="bold")).pack(side="left", padx=(8, 0))
         
         tool_data_val = self.config.get("tools", {}).get(tool_name, "")
         
@@ -3865,10 +3884,14 @@ del "%~f0"
         else:
             if "github" in tool_data:
                 btn_cloud = ctk.CTkButton(row, text=_("☁️ โหลดจาก GitHub"), width=130, fg_color="#89b4fa", text_color="#1e1e2e", hover_color="#b4befe", font=ctk.CTkFont(weight="bold"), command=lambda g=tool_data["github"], n=tool_name: self.show_github_versions(n, g))
+                if not runs_here:
+                    btn_cloud.configure(state="disabled", fg_color="#313244", text_color="#6c7086", hover_color="#313244")
                 btn_cloud.grid(row=0, column=col_idx, padx=5, pady=5)
                 col_idx += 1
             elif "direct_zip" in tool_data:
                 btn_cloud = ctk.CTkButton(row, text="📥 1-Click Install", width=130, fg_color="#a6e3a1", text_color="#1e1e2e", hover_color="#94e2d5", font=ctk.CTkFont(weight="bold"), command=lambda u=tool_data["direct_zip"], n=tool_name: self.download_and_extract_direct(n, u))
+                if not runs_here:
+                    btn_cloud.configure(state="disabled", fg_color="#313244", text_color="#6c7086", hover_color="#313244")
                 btn_cloud.grid(row=0, column=col_idx, padx=5, pady=5)
                 col_idx += 1
                 
