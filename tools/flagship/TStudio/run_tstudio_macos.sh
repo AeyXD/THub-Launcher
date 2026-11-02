@@ -41,9 +41,15 @@ if [ -z "$PY" ]; then
     "$BASE" -m venv "$VENV"
     "$VENV/bin/pip" install --quiet --upgrade pip
     # numpy ใช้โดย waveform ของ TVox (เปิดจาก TStudio ได้) — ใส่ไว้ให้เครื่องใหม่ใช้ได้ครบ
-    "$VENV/bin/pip" install --quiet PyQt6 requests numpy
+    "$VENV/bin/pip" install --quiet PyQt6 requests numpy Pillow
   fi
   PY="$VENV/bin/python"
+fi
+
+# --check-only: สร้าง/ตรวจ venv แล้วออก (ใช้โดย run_*_macos.sh ของแอปอื่น)
+if [ "$1" = "--check-only" ]; then
+  echo "✓ venv พร้อม: $PY"
+  exit 0
 fi
 
 cd "$DIR"
