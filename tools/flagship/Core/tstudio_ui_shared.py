@@ -531,6 +531,21 @@ class SettingsDialog(QDialog):
         stt_row.addWidget(btn_stt_browse)
         form_layout.addRow(_("stt_settings_cli"), stt_row)
 
+        # AI TTS พากย์เสียง (spec-ai-dubbing.md เฟส 1)
+        self.cbo_tts_provider = QComboBox()
+        self.cbo_tts_provider.addItems(["edge"])
+        self.cbo_tts_provider.setToolTip(_("tts_settings_provider"))
+        form_layout.addRow(_("tts_settings_provider"), self.cbo_tts_provider)
+
+        self.cbo_tts_voice = QComboBox()
+        self.cbo_tts_voice.addItem(_("tts_voice_premwadee"), "th-TH-PremwadeeNeural")
+        self.cbo_tts_voice.addItem(_("tts_voice_niwat"), "th-TH-NiwatNeural")
+        form_layout.addRow(_("tts_settings_voice"), self.cbo_tts_voice)
+
+        self.cbo_tts_rate = QComboBox()
+        self.cbo_tts_rate.addItems(["+0%", "-10%", "-20%", "+10%", "+20%"])
+        form_layout.addRow(_("tts_settings_rate"), self.cbo_tts_rate)
+
         tab_active_layout.addLayout(form_layout)
 
         # Active provider key status banner
@@ -1010,6 +1025,13 @@ class SettingsDialog(QDialog):
             self.chk_qa_gate.setChecked(bool(data.get("qa_gate_before_deploy", False)))
             self.txt_thaiwrap_cli.setText(data.get("thaiwrap_cli_path", ""))
             self.txt_stt_cli.setText(data.get("stt_cli_path", ""))
+            self.cbo_tts_provider.setCurrentText(data.get("tts_provider", "edge"))
+            _tv = data.get("tts_voice", "th-TH-PremwadeeNeural")
+            for i in range(self.cbo_tts_voice.count()):
+                if self.cbo_tts_voice.itemData(i) == _tv:
+                    self.cbo_tts_voice.setCurrentIndex(i)
+                    break
+            self.cbo_tts_rate.setCurrentText(data.get("tts_rate", "+0%"))
             tw_mode = str(data.get("thaiwrap_mode", "off")).lower()
             self.cbo_thaiwrap_mode.setCurrentText(tw_mode if tw_mode in ("auto", "off", "zwsp", "hairspace", "space") else "off")
 
@@ -1047,6 +1069,9 @@ class SettingsDialog(QDialog):
         data["qa_gate_before_deploy"] = self.chk_qa_gate.isChecked()
         data["thaiwrap_cli_path"] = self.txt_thaiwrap_cli.text().strip()
         data["stt_cli_path"] = self.txt_stt_cli.text().strip()
+        data["tts_provider"] = self.cbo_tts_provider.currentText()
+        data["tts_voice"] = self.cbo_tts_voice.currentData() or "th-TH-PremwadeeNeural"
+        data["tts_rate"] = self.cbo_tts_rate.currentText()
         data["thaiwrap_mode"] = self.cbo_thaiwrap_mode.currentText()
         # เตือนตอนเซฟ: เปิดโหมดแต่ยังไม่ได้ตั้ง path (deploy จะทำงานแบบไม่ wrap พร้อมแจ้งเตือน)
         if data["thaiwrap_mode"] != "off" and not data["thaiwrap_cli_path"]:

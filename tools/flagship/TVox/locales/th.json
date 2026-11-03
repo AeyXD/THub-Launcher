@@ -46,5 +46,22 @@
   "stt_open_srt": "เปิดไฟล์ SRT",
   "stt_need_subtitles_tool": "ยังไม่ได้ติดตั้ง Game Tool 'Subtitles' — เปิด Plugin Manager → แท็บ Game Tools → ติดตั้ง Subtitles ก่อน",
   "stt_unpacking": "แปลง SRT ร่างเป็นตาราง…",
-  "stt_opened_status": "เปิดฉบับร่างในตารางแล้ว: {csv} ({n} แถว) — origin ผูกกับ SRT แล้ว"
+  "stt_opened_status": "เปิดฉบับร่างในตารางแล้ว: {csv} ({n} แถว) — origin ผูกกับ SRT แล้ว",
+  "tts_btn_tooltip": "พากย์เสียงไทยอัตโนมัติด้วย AI TTS (edge-tts) — สร้าง WAV รายแถวจากคอลัมน์คำแปล",
+  "tts_dialog_title": "พากย์อัตโนมัติ (AI TTS)",
+  "tts_voice_label": "เสียงพากย์:",
+  "tts_voice_premwadee": "หญิง (Premwadee) — แนะนำ",
+  "tts_voice_niwat": "ชาย (Niwat)",
+  "tts_rate_label": "ความเร็วพูด:",
+  "tts_generating": "กำลังพากย์แถวที่ {n}/{total}…",
+  "tts_generating_row": "แถว {n}/{total}: {text}…",
+  "tts_cancel": "ยกเลิก",
+  "tts_cancelled": "ยกเลิกแล้ว",
+  "tts_no_translations": "ยังไม่มีคำแปลไทยในตาราง — แปลก่อนแล้วค่อยพากย์",
+  "tts_need_install": "ยังไม่ได้ติดตั้ง edge-tts — รัน pip install edge-tts ใน venv ของ TStudio ก่อน",
+  "tts_need_ffmpeg": "ไม่พบ ffmpeg — ติดตั้งด้วย brew install ffmpeg",
+  "tts_all_failed": "พากย์ไม่สำเร็จทั้งหมด — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต (edge-tts ต้องใช้เน็ต)",
+  "tts_done_status": "พากย์เสร็จ {n}/{total} แถว → {dir}",
+  "tts_done_msg": "พากย์เสร็จ {n}/{total} แถว",
+  "tts_output_dir": "ไฟล์อยู่ที่: {dir}"
 }

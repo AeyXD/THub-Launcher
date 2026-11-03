@@ -566,5 +566,8 @@
   "stt_settings_cli": "6. 🎙️ thaistt CLI (ถอดเสียง Whisper — ใช้ใน TVox):",
   "settings_open_keys_btn": "🔑 กรอก / จัดการ API Keys…",
   "settings_open_keys_tooltip": "ไปที่แท็บจัดการ API Keys หลายค่าย — พาไปช่องของค่ายที่เลือกไว้ในแท็บโมเดลหลัก (Z.ai / DeepSeek / OpenAI / ฯลฯ)",
-  "stt_settings_cli_ph": "path ถึง thaistt เช่น .../Playgound/thaistt/thaistt.py — ตัวมันจัดการ ffmpeg/โมเดลเอง"
+  "stt_settings_cli_ph": "path ถึง thaistt เช่น .../Playgound/thaistt/thaistt.py — ตัวมันจัดการ ffmpeg/โมเดลเอง",
+  "tts_settings_provider": "7. 🎙️ TTS Provider (พากย์เสียง AI):",
+  "tts_settings_voice": "เสียงพากย์:",
+  "tts_settings_rate": "ความเร็วพูด:"
 }

@@ -566,5 +566,8 @@
   "stt_settings_cli": "6. 🎙️ thaistt CLI (Whisper transcription — used in TVox):",
   "settings_open_keys_btn": "🔑 Enter / manage API Keys…",
   "settings_open_keys_tooltip": "Go to the multi-provider API Keys tab — jumps to the field of the provider selected on the main model tab (Z.ai / DeepSeek / OpenAI / etc.)",
-  "stt_settings_cli_ph": "path to thaistt, e.g. .../Playgound/thaistt/thaistt.py — it manages ffmpeg/models itself"
+  "stt_settings_cli_ph": "path to thaistt, e.g. .../Playgound/thaistt/thaistt.py — it manages ffmpeg/models itself",
+  "tts_settings_provider": "7. 🎙️ TTS Provider (AI voice-over):",
+  "tts_settings_voice": "Voice:",
+  "tts_settings_rate": "Speech rate:"
 }

@@ -46,5 +46,22 @@
   "stt_open_srt": "Open SRT file",
   "stt_need_subtitles_tool": "Game Tool 'Subtitles' is not installed — open Plugin Manager → Game Tools tab and install Subtitles first",
   "stt_unpacking": "Converting draft SRT to table…",
-  "stt_opened_status": "Draft opened in table: {csv} ({n} rows) — origin bound to the SRT"
+  "stt_opened_status": "Draft opened in table: {csv} ({n} rows) — origin bound to the SRT",
+  "tts_btn_tooltip": "Auto-generate Thai voice-over with AI TTS (edge-tts) — creates per-row WAV from Translation column",
+  "tts_dialog_title": "Auto Voice-over (AI TTS)",
+  "tts_voice_label": "Voice:",
+  "tts_voice_premwadee": "Female (Premwadee) — recommended",
+  "tts_voice_niwat": "Male (Niwat)",
+  "tts_rate_label": "Speech rate:",
+  "tts_generating": "Generating row {n}/{total}…",
+  "tts_generating_row": "Row {n}/{total}: {text}…",
+  "tts_cancel": "Cancel",
+  "tts_cancelled": "Cancelled",
+  "tts_no_translations": "No Thai translations in the table — translate first",
+  "tts_need_install": "edge-tts not installed — run pip install edge-tts in TStudio venv",
+  "tts_need_ffmpeg": "ffmpeg not found — install with brew install ffmpeg",
+  "tts_all_failed": "All rows failed — check internet connection (edge-tts requires network)",
+  "tts_done_status": "Generated {n}/{total} rows → {dir}",
+  "tts_done_msg": "Generated {n}/{total} rows",
+  "tts_output_dir": "Files at: {dir}"
 }

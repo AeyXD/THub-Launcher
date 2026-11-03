@@ -266,6 +266,13 @@ if HAS_TSTUDIO:
             panel_layout.addWidget(self.btn_stt)
             self.refresh_stt_btn_state()
 
+            # AI TTS พากย์อัตโนมัติ (spec-ai-dubbing.md เฟส 1)
+            self.btn_tts = QPushButton("🎙️")
+            self.btn_tts.setToolTip(_("tts_btn_tooltip"))
+            self.btn_tts.setStyleSheet("background: transparent; color: #f5c2e7; font-size: 15px; border: none; padding: 2px;")
+            self.btn_tts.clicked.connect(self.open_tts_dialog)
+            panel_layout.addWidget(self.btn_tts)
+
             self.video_layout.addWidget(self.panel_widget)
             
             self.video_dock.setWidget(self.video_container)
@@ -514,6 +521,142 @@ if HAS_TSTUDIO:
             super().changeEvent(event)
             if event.type() == event.Type.WindowActivate and hasattr(self, "btn_stt"):
                 self.refresh_stt_btn_state()
+
+        # ─────────── AI TTS พากย์อัตโนมัติ (spec-ai-dubbing.md เฟส 1) ───────────
+
+        def open_tts_dialog(self):
+            from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QDialogButtonBox
+            from tstudio_core import TStudioCore
+            from tvox_tts import VOICES, DEFAULT_VOICE
+
+            cfg = TStudioCore.load_config()
+            dlg = QDialog(self)
+            dlg.setWindowTitle(_("tts_dialog_title"))
+            form = QFormLayout(dlg)
+
+            # เลือกเสียง
+            self.cbo_tts_voice = QComboBox()
+            voice_labels = {"premwadee": _("tts_voice_premwadee"), "niwat": _("tts_voice_niwat")}
+            for vid, vcode in VOICES.items():
+                self.cbo_tts_voice.addItem(voice_labels.get(vid, vid), vcode)
+            cur_voice = cfg.get("tts_voice", DEFAULT_VOICE)
+            for i in range(self.cbo_tts_voice.count()):
+                if self.cbo_tts_voice.itemData(i) == cur_voice:
+                    self.cbo_tts_voice.setCurrentIndex(i)
+                    break
+            form.addRow(_("tts_voice_label"), self.cbo_tts_voice)
+
+            # ความเร็วพูด
+            self.cbo_tts_rate = QComboBox()
+            self.cbo_tts_rate.addItems(["+0%", "-10%", "-20%", "+10%", "+20%"])
+            self.cbo_tts_rate.setCurrentText(cfg.get("tts_rate", "+0%"))
+            form.addRow(_("tts_rate_label"), self.cbo_tts_rate)
+
+            buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+            buttons.accepted.connect(dlg.accept)
+            buttons.rejected.connect(dlg.reject)
+            form.addRow(buttons)
+            if dlg.exec() != QDialog.DialogCode.Accepted:
+                return
+
+            voice = self.cbo_tts_voice.currentData()
+            rate = self.cbo_tts_rate.currentText()
+            self._start_tts_batch(voice, rate)
+
+        def _start_tts_batch(self, voice, rate):
+            """พากย์ทุกแถวที่มีคำแปล → WAV รายแถว → ไฟล์ผสม"""
+            from PyQt6.QtWidgets import QProgressDialog, QMessageBox
+            from tvox_tts import generate_tts, find_edge_tts, mix_with_ducking
+            from tstudio_core import TStudioCore
+            from ffmpeg_utils import get_ffmpeg_path
+
+            cli = find_edge_tts()
+            if not cli:
+                QMessageBox.warning(self, _("tts_dialog_title"), _("tts_need_install"))
+                return
+
+            rows = [(i, r) for i, r in enumerate(self.model._data) if (r.get("trans") or "").strip()]
+            if not rows:
+                QMessageBox.information(self, _("tts_dialog_title"), _("tts_no_translations"))
+                return
+
+            ff = get_ffmpeg_path()
+            if not ff:
+                QMessageBox.warning(self, _("tts_dialog_title"), _("tts_need_ffmpeg"))
+                return
+
+            # บันทึก settings
+            try:
+                cfg = TStudioCore.load_config()
+                cfg["tts_voice"] = voice
+                cfg["tts_rate"] = rate
+                TStudioCore.save_config(cfg)
+            except Exception:
+                pass
+
+            out_dir = os.path.join(os.path.dirname(getattr(self, 'csv_path', '.') or '.'), "tts_output")
+            os.makedirs(out_dir, exist_ok=True)
+
+            prog = QProgressDialog(_("tts_generating", n=0, total=len(rows)), _("tts_cancel"), 0, len(rows), self)
+            prog.setWindowTitle(_("tts_dialog_title"))
+            prog.setMinimumDuration(200)
+            prog.setWindowModality(Qt.WindowModality.WindowModal)
+            self._tts_cancelled = False
+
+            success = 0
+            wav_files = []
+            for idx, (row_i, row) in enumerate(rows):
+                if self._tts_cancelled:
+                    break
+                app.processEvents()
+                text = row.get("trans", "").strip()
+                row_id = row.get("id", f"row_{row_i}")
+                wav_path = os.path.join(out_dir, f"{row_id}.wav")
+                prog.setLabelText(_("tts_generating_row", n=idx + 1, total=len(rows), text=text[:40]))
+                prog.setValue(idx)
+
+                ok, err = generate_tts(text, voice, wav_path, rate=rate, ffmpeg_path=ff)
+                if ok:
+                    success += 1
+                    wav_files.append((row_i, wav_path))
+                else:
+                    print(f"TTS row {row_id}: {err}")
+
+            prog.setValue(len(rows))
+            prog.close()
+
+            if self._tts_cancelled:
+                QMessageBox.information(self, _("tts_dialog_title"), _("tts_cancelled"))
+                return
+            if success == 0:
+                QMessageBox.warning(self, _("tts_dialog_title"), _("tts_all_failed"))
+                return
+
+            # ผสมไฟล์และเปิดใน player ถ้ามีไฟล์ต้นฉบับเปิดอยู่
+            has_original = False
+            try:
+                has_original = bool(self.player and getattr(self.player, 'path', None))
+            except Exception:
+                pass
+
+            if has_original and wav_files:
+                QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+                try:
+                    first_wav = wav_files[0][1]
+                    mix_out = os.path.join(out_dir, "_preview_mix.wav")
+                    ok_mix, err_mix = mix_with_ducking(
+                        getattr(self.player, 'path', ''), first_wav, mix_out, ff)
+                    QApplication.restoreOverrideCursor()
+                    if ok_mix:
+                        self.player.loadfile(mix_out)
+                except Exception:
+                    QApplication.restoreOverrideCursor()
+
+            self.statusBar().showMessage(
+                _("tts_done_status", n=success, total=len(rows), dir=os.path.basename(out_dir)), 6000)
+            QMessageBox.information(
+                self, _("tts_dialog_title"),
+                _("tts_done_msg", n=success, total=len(rows)) + "\n\n" + _("tts_output_dir", dir=out_dir))
 
         def open_stt_dialog(self):
             from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QDialogButtonBox
