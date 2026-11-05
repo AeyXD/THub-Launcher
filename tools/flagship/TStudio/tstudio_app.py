@@ -8843,6 +8843,9 @@ if __name__ == '__main__':
             pass
 
     app = QApplication(sys.argv)
+    # Fusion style — บังคับ Qt ใช้ style ของตัวเองแทน native (macOS Aqua ignore QSS
+    # สำหรับ QDockWidget::title และ widget เฉพาะที่ → Light theme จะชดเชยได้ครบ)
+    app.setStyle('Fusion')
     app_icon = get_tstudio_icon()
     if not app_icon.isNull():
         app.setWindowIcon(app_icon)
