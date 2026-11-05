@@ -335,8 +335,13 @@ if HAS_TSTUDIO:
                 return
 
             try:
-                # osc=False because we built our own UI now!
-                self.player = mpv.MPV(wid=int(self.video_widget.winId()), osc=False, input_default_bindings=True, input_vo_keyboard=True, keep_open=True)
+                # macOS: wid= ส่ง NSView pointer ที่ libmpv ไม่รองรับ → SIGSEGV
+                # แก่โดยไม่ embed ใน Qt widget บน macOS (mpv เปิดหน้าต่างของตัวเองแทน)
+                if sys.platform == 'darwin':
+                    self.player = mpv.MPV(osc=False, input_default_bindings=True, input_vo_keyboard=True, keep_open=True)
+                else:
+                    # osc=False because we built our own UI now!
+                    self.player = mpv.MPV(wid=int(self.video_widget.winId()), osc=False, input_default_bindings=True, input_vo_keyboard=True, keep_open=True)
             except Exception as e:
                 QMessageBox.critical(self, _("dlg_mpv_init_error_title"), _("dlg_mpv_init_error_msg"))
 
