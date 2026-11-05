@@ -700,6 +700,149 @@ QProgressBar::chunk {
     background: #a6e3a1;
     border-radius: 3px;
 }
+
+/* ── Widgets ที่เคยไม่มี rule (macOS native override → เพิ่มเพื่อครอบคลุม) ── */
+
+QStatusBar {
+    background: #11111b;
+    color: #a6adc8;
+    border-top: 1px solid #313244;
+    font-size: 11px;
+}
+
+QToolBar {
+    background: #181825;
+    border-bottom: 1px solid #313244;
+    spacing: 4px;
+    padding: 3px;
+}
+QToolBar::separator {
+    background: #313244;
+    width: 1px;
+    margin: 4px 2px;
+}
+
+QToolButton {
+    background: transparent;
+    color: #cdd6f4;
+    border: none;
+    border-radius: 5px;
+    padding: 4px 8px;
+}
+QToolButton:hover {
+    background: #313244;
+}
+QToolButton:pressed {
+    background: #45475a;
+}
+
+QGroupBox {
+    background: #181825;
+    border: 1px solid #313244;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding-top: 12px;
+    font-weight: bold;
+    color: #cdd6f4;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 4px;
+    color: #89b4fa;
+}
+
+QCheckBox, QRadioButton {
+    color: #cdd6f4;
+    spacing: 6px;
+    background: transparent;
+}
+QCheckBox::indicator, QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #585b70;
+    background: #11111b;
+}
+QCheckBox::indicator {
+    border-radius: 4px;
+}
+QRadioButton::indicator {
+    border-radius: 8px;
+}
+QCheckBox::indicator:checked, QRadioButton::indicator:checked {
+    background: #89b4fa;
+    border-color: #89b4fa;
+}
+QCheckBox::indicator:hover, QRadioButton::indicator:hover {
+    border-color: #89b4fa;
+}
+
+QSpinBox {
+    background: #11111b;
+    color: #cdd6f4;
+    border: 1px solid #313244;
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+QSpinBox::up-button, QSpinBox::down-button {
+    background: #313244;
+    border: none;
+    border-radius: 4px;
+    width: 18px;
+}
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background: #45475a;
+}
+
+QSlider::groove:horizontal {
+    height: 6px;
+    background: #313244;
+    border-radius: 3px;
+}
+QSlider::handle:horizontal {
+    background: #89b4fa;
+    width: 14px;
+    height: 14px;
+    margin: -4px 0;
+    border-radius: 7px;
+}
+QSlider::groove:vertical {
+    width: 6px;
+    background: #313244;
+    border-radius: 3px;
+}
+QSlider::handle:vertical {
+    background: #89b4fa;
+    height: 14px;
+    width: 14px;
+    margin: 0 -4px;
+    border-radius: 7px;
+}
+
+QSplitter::handle {
+    background: #313244;
+    width: 2px;
+}
+QSplitter::handle:hover {
+    background: #89b4fa;
+}
+
+QToolTip {
+    background: #11111b;
+    color: #cdd6f4;
+    border: 1px solid #313244;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+QAbstractItemView {
+    background: #181825;
+    color: #cdd6f4;
+    selection-background-color: #2a2b3d;
+    selection-color: #cdd6f4;
+    alternate-background-color: #1e1e2e;
+}
 """
 # ═════════════════════════════════════════════════════════════════════
 # THEME SYSTEM — 3 โหมด: system | dark | light
@@ -848,13 +991,45 @@ class _ThemeInlineStyleFilter(QObject):
 
 def apply_theme():
     """Apply the resolved theme at application level (covers all windows/dialogs)
-    พร้อม remap สี inline ของ widget ทั้งแอปให้ตรงโหมดปัจจุบัน"""
+    พร้อม remap สี inline ของ widget ทั้งแอปให้ตรงโหมดปัจจุบัน
+    + set QPalette คู่กัน (เหมือน CSS variable + fallback) เผื่อ widget ที่ QSS ไปไม่ถึง"""
     global _theme_light_active, _theme_filter_installed
     app = QApplication.instance()
     if app is None:
         return
     _theme_light_active = resolve_theme_mode() == "light"
     app.setStyleSheet(LIGHT_SS if _theme_light_active else DARK_SS)
+
+    # QPalette — จับ widget ที่ QSS ไม่ครอบคลุม (native rendering, macOS Aqua)
+    from PyQt6.QtGui import QPalette, QColor
+    pal = QPalette()
+    if _theme_light_active:
+        pal.setColor(QPalette.ColorRole.Window, QColor("#eff1f5"))
+        pal.setColor(QPalette.ColorRole.WindowText, QColor("#4c4f69"))
+        pal.setColor(QPalette.ColorRole.Base, QColor("#eff1f5"))
+        pal.setColor(QPalette.ColorRole.AlternateBase, QColor("#e6e9ef"))
+        pal.setColor(QPalette.ColorRole.Text, QColor("#4c4f69"))
+        pal.setColor(QPalette.ColorRole.Button, QColor("#e6e9ef"))
+        pal.setColor(QPalette.ColorRole.ButtonText, QColor("#4c4f69"))
+        pal.setColor(QPalette.ColorRole.Highlight, QColor("#1e66f5"))
+        pal.setColor(QPalette.ColorRole.HighlightedText, QColor("#eff1f5"))
+        pal.setColor(QPalette.ColorRole.ToolTipBase, QColor("#dce0e8"))
+        pal.setColor(QPalette.ColorRole.ToolTipText, QColor("#4c4f69"))
+        pal.setColor(QPalette.ColorRole.PlaceholderText, QColor("#7c7f93"))
+    else:
+        pal.setColor(QPalette.ColorRole.Window, QColor("#1e1e2e"))
+        pal.setColor(QPalette.ColorRole.WindowText, QColor("#cdd6f4"))
+        pal.setColor(QPalette.ColorRole.Base, QColor("#181825"))
+        pal.setColor(QPalette.ColorRole.AlternateBase, QColor("#1e1e2e"))
+        pal.setColor(QPalette.ColorRole.Text, QColor("#cdd6f4"))
+        pal.setColor(QPalette.ColorRole.Button, QColor("#313244"))
+        pal.setColor(QPalette.ColorRole.ButtonText, QColor("#cdd6f4"))
+        pal.setColor(QPalette.ColorRole.Highlight, QColor("#89b4fa"))
+        pal.setColor(QPalette.ColorRole.HighlightedText, QColor("#11111b"))
+        pal.setColor(QPalette.ColorRole.ToolTipBase, QColor("#11111b"))
+        pal.setColor(QPalette.ColorRole.ToolTipText, QColor("#cdd6f4"))
+        pal.setColor(QPalette.ColorRole.PlaceholderText, QColor("#6c7086"))
+    app.setPalette(pal)
     if not _theme_filter_installed:
         app.installEventFilter(_ThemeInlineStyleFilter(app))
         _theme_filter_installed = True
