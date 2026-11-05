@@ -67,5 +67,6 @@
   "tts_play_row": "🔊 เล่นเสียงพากย์แถวนี้",
   "tts_stop_row": "⏹ หยุดเล่น",
   "tts_no_wav": "🔇 ยังไม่มีไฟล์เสียง (กด 🎙️ เพื่อพากย์ก่อน)",
-  "tvox_mpv_macos_info": "🎬 เครื่องเล่นวิดีโอ (mpv) ยังใช้ไม่ได้บน macOS ชั่วคราว (known bug)\n\nฟีเจอร์อื่นทำงานครบทั้งหมด: ถอดเสียง (Whisper STT) · พากย์ AI (TTS) · แปล AI · ตาราง · deploy\n\nเครื่องเล่นวิดีโอจะกลับมาเมื่อมี mpv binding ที่รองรับ macOS"
+  "tvox_player_qt_info": "🎬 เครื่องเล่นวิดีโอใช้ engine ในตัว (Qt · FFmpeg) — mpv ยังพังบน macOS (known bug) จึงสลับชั่วคราว\n\nใช้ได้ครบทุกฟีเจอร์: เล่น/หยุด · seek · A-B loop · ความเร็ว · ซับ · ถอดเสียง (STT) · พากย์ AI (TTS)\n\nรองรับ mp4/mkv/webm/mov/wav — เมื่อ mpv binding แก้บั๊ก macOS แล้วจะสลับกลับอัตโนมัติ",
+  "tvox_player_none_macos": "🎬 ไม่มีเครื่องเล่นวิดีโอใช้งานได้ (QtMultimedia หาย + mpv ปิดบน macOS)\n\nติดตั้ง PyQt6 ใหม่ใน venv ของ TStudio: pip install --force-reinstall PyQt6"
 }

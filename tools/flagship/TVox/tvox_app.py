@@ -21,21 +21,9 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 
-# Prepend TVox dir to PATH so libmpv-2.dll is found automatically
-os.environ["PATH"] = os.path.dirname(os.path.abspath(__file__)) + os.pathsep + os.environ["PATH"]
-
-# macOS: python-mpv 1.x + libmpv 2.x SIGSEGV at mpv_set_option — ปิดชั่วคาว (video player ใช้ไม่ได้ แต่ STT/TTS/แปล AI ใช้ได้ครบ)
-import platform as _platform
-try:
-    import mpv
-    MPV_AVAILABLE = _platform.system() != 'Darwin'
-    MPV_ERROR = '' if MPV_AVAILABLE else 'Video player (mpv) disabled on macOS — known SIGSEGV in python-mpv 1.x + libmpv 2.x. STT/TTS/AI translate work normally.'
-except OSError as e:
-    MPV_AVAILABLE = False
-    MPV_ERROR = str(e)
-except Exception as e:
-    MPV_AVAILABLE = False
-    MPV_ERROR = str(e)
+# Player backend abstraction (tvox_player.py): mpv หลักบน Windows/Linux ·
+# Qt (QMediaPlayer+FFmpeg) หลักบน macOS (python-mpv SIGSEGV) + fallback ทุกแพลตฟอร์ม
+from tvox_player import create_player
 
 # Import TranslationStudio to inherit all its AI/Glossary/Table features!
 try:
@@ -287,9 +275,9 @@ if HAS_TSTUDIO:
             # Try to force the dock to take half the height initially (window is 900 tall)
             self.resizeDocks([self.video_dock], [450], Qt.Orientation.Vertical)
 
-            # 6. Initialize MPV and Timer
+            # 6. Initialize Player backend and Timer
             self.player = None
-            self.init_mpv()
+            self.init_player()
 
             # TV-C4: Connect signals to UI slot methods
             self.time_pos_updated.connect(self._on_time_pos_ui)
@@ -297,7 +285,7 @@ if HAS_TSTUDIO:
 
             self.update_timer = QTimer(self)
             self.update_timer.setInterval(30) # ~33fps updates
-            self.update_timer.timeout.connect(self.update_ui_from_mpv)
+            self.update_timer.timeout.connect(self.update_ui_from_player)
             self.update_timer.start()
 
             # 7. Hook into TStudio's table row selection
@@ -324,32 +312,49 @@ if HAS_TSTUDIO:
             QTimer.singleShot(500, self.check_requirements)
 
         def check_requirements(self):
-            if not MPV_AVAILABLE:
-                if sys.platform == "darwin":
-                    # macOS: ปิด mpv ชั่วคราว (SIGSEGV) — แจ้งแบบ info ไม่ต้อง dll
-                    QMessageBox.information(self, _("dlg_mpv_missing_title"), _("tvox_mpv_macos_info"))
-                else:
-                    msg = f"MPV Engine ไม่พร้อมใช้งาน!\n\nโปรดดาวน์โหลดไฟล์ libmpv-2.dll และนำมาวางไว้ที่:\n{os.path.dirname(__file__)}\n\nรายละเอียด Error:\n{MPV_ERROR}"
-                    QMessageBox.warning(self, _("dlg_mpv_missing_title"), msg)
+            """แจ้งสถานะ player backend ตอนเปิดแอป:
+            - mpv ใช้ได้ → เงียบ (ปกติ)
+            - fallback Qt (macOS หรือ mpv dll หาย) → info สั้น ๆ
+            - ไม่มี backend เลย → warning วิธีแก้
+            offscreen (CI/headless): ข้าม dialog — modal exec() จะบล็อกไม่มีคนกด"""
+            try:
+                if QApplication.instance() and QApplication.instance().platformName() == 'offscreen':
+                    return
+            except Exception:
+                pass
+            if self.player is not None and self.player.name == 'mpv':
+                return
+            if self.player is not None and self.player.name == 'qt':
+                QMessageBox.information(self, _("dlg_mpv_missing_title"), _("tvox_player_qt_info"))
+                return
+            # ไม่มี backend เลย
+            if sys.platform == "darwin":
+                QMessageBox.warning(self, _("dlg_mpv_missing_title"), _("tvox_player_none_macos"))
+            else:
+                msg = _("dlg_mpv_missing_msg").format(
+                    path=os.path.dirname(__file__),
+                    error=getattr(self, '_player_error', ''))
+                QMessageBox.warning(self, _("dlg_mpv_missing_title"), msg)
 
         def on_profile_changed(self, text):
             super().on_profile_changed(text)
             self.setWindowTitle(f"TVox - FMV Modding Studio [{text}]")
 
-        def init_mpv(self):
-            if not MPV_AVAILABLE:
+        def init_player(self):
+            """สร้าง player backend ตามแพลตฟอร์ม (mpv → Qt fallback) ·
+            backend qt มี QVideoWidget ของตัวเอง → สลับเข้า layout แทน placeholder"""
+            self.player, self._player_error = create_player(
+                host_widget=self.video_widget, parent=self)
+            if self.player is None or self.player.name != 'qt':
                 return
 
-            try:
-                # macOS: wid= ส่ง NSView pointer ที่ libmpv ไม่รองรับ → SIGSEGV
-                # แก่โดยไม่ embed ใน Qt widget บน macOS (mpv เปิดหน้าต่างของตัวเองแทน)
-                if sys.platform == 'darwin':
-                    self.player = mpv.MPV(osc=False, input_default_bindings=True, input_vo_keyboard=True, keep_open=True)
-                else:
-                    # osc=False because we built our own UI now!
-                    self.player = mpv.MPV(wid=int(self.video_widget.winId()), osc=False, input_default_bindings=True, input_vo_keyboard=True, keep_open=True)
-            except Exception as e:
-                QMessageBox.critical(self, _("dlg_mpv_init_error_title"), _("dlg_mpv_init_error_msg"))
+            # Qt backend: สลับ placeholder (ที่เตรียมไว้ให้ mpv embed) เป็น QVideoWidget
+            old = self.video_widget
+            self.video_widget = self.player.video_widget
+            self.video_widget.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+            self.video_widget.installEventFilter(self)
+            self.video_layout.replaceWidget(old, self.video_widget)
+            old.deleteLater()
 
         # --- MPV UI UPDATE LOGIC ---
         def resizeEvent(self, event):
@@ -406,16 +411,16 @@ if HAS_TSTUDIO:
             """TV-C4: Slot called via pyqtSignal to safely update duration UI."""
             self.lbl_time_total.setText(self.format_time(dur))
 
-        def update_ui_from_mpv(self):
+        def update_ui_from_player(self):
             # TV-C3: Wrap entire body in try-except — player may be destroyed
             try:
-                if not self.player or not hasattr(self.player, 'time_pos') or self.player.time_pos is None:
+                if not self.player or self.player.position is None:
                     return
 
-                pos = self.player.time_pos
+                pos = self.player.position
 
                 # TV-W1: Guard duration access
-                duration = getattr(self.player, 'duration', None)
+                duration = self.player.duration
                 if duration is None:
                     return
                 dur = duration if duration > 0 else 1.0
@@ -463,7 +468,7 @@ if HAS_TSTUDIO:
                             if not getattr(self, 'is_loop_seeking', False):
                                 try:
                                     self.is_loop_seeking = True
-                                    self.player.time_pos = self.mark_a
+                                    self.player.position = self.mark_a
                                 except Exception:
                                     pass
                         elif pos < self.mark_b - 0.2:
@@ -477,7 +482,7 @@ if HAS_TSTUDIO:
             if self.player:
                 self.lbl_time_curr.setText(self.format_time(target_sec))
                 try:
-                    self.player.time_pos = target_sec
+                    self.player.position = target_sec
                 except Exception as e:
                     print(f"Seek error: {e}")
 
@@ -650,11 +655,7 @@ if HAS_TSTUDIO:
                 return
 
             # ผสมไฟล์และเปิดใน player ถ้ามีไฟล์ต้นฉบับเปิดอยู่
-            has_original = False
-            try:
-                has_original = bool(self.player and getattr(self.player, 'path', None))
-            except Exception:
-                pass
+            has_original = bool(self.player and self.player.path)
 
             if has_original and wav_files:
                 QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
@@ -662,10 +663,10 @@ if HAS_TSTUDIO:
                     first_wav = wav_files[0][1]
                     mix_out = os.path.join(out_dir, "_preview_mix.wav")
                     ok_mix, err_mix = mix_with_ducking(
-                        getattr(self.player, 'path', ''), first_wav, mix_out, ff)
+                        self.player.path or '', first_wav, mix_out, ff)
                     QApplication.restoreOverrideCursor()
                     if ok_mix:
-                        self.player.loadfile(mix_out)
+                        self.player.load(mix_out)
                 except Exception:
                     QApplication.restoreOverrideCursor()
 
@@ -770,11 +771,7 @@ if HAS_TSTUDIO:
             form = QFormLayout(dlg)
 
             # แหล่ง: ไฟล์ที่เปิดอยู่ในเครื่องเล่น หรือเลือกไฟล์ใหม่
-            playing = None
-            try:
-                playing = self.player.path if (self.player and getattr(self.player, "path", None)) else None
-            except Exception:
-                playing = None
+            playing = self.player.path if (self.player and self.player.path) else None
             self.cbo_stt_source = QComboBox()
             if playing:
                 self.cbo_stt_source.addItem(_("stt_source_current", name=os.path.basename(playing)), playing)
@@ -820,7 +817,7 @@ if HAS_TSTUDIO:
             duration = None
             try:
                 if playing and os.path.abspath(media) == os.path.abspath(playing):
-                    duration = getattr(self.player, "duration", None)
+                    duration = self.player.duration if self.player else None
             except Exception:
                 duration = None
             self._start_thaistt(media, self.cbo_stt_lang.currentText(),
@@ -963,8 +960,7 @@ if HAS_TSTUDIO:
                             
                         def on_result(extracted_video):
                             if extracted_video:
-                                self.player.play(extracted_video)
-                                self.player.pause = True
+                                self.player.load(extracted_video, start_paused=True)
                                 self.btn_play_pause.setText("\u25b6")
                                 
                         from tstudio_ui_shared import ApiWorker
@@ -976,10 +972,7 @@ if HAS_TSTUDIO:
                 except Exception as e:
                     print(f"Bundle extract error: {e}")
 
-                self.player.play(file_path)
-                
-                # Default to paused state
-                self.player.pause = True
+                self.player.load(file_path, start_paused=True)
                 self.btn_play_pause.setText("\u25b6")
                 
                 # Refocus to video widget so spacebar works immediately
@@ -1006,16 +999,16 @@ if HAS_TSTUDIO:
 
         def toggle_play(self):
             if not self.player: return
-            self.player.pause = not self.player.pause
+            self.player.toggle_pause()
 
         def seek_relative(self, seconds):
             # TV-W2: Guard against seeking when no file is loaded
             try:
-                if not self.player or not getattr(self.player, 'path', None):
+                if not self.player or not self.player.path:
                     return
             except Exception:
                 return
-            self.player.seek(seconds, reference="relative")
+            self.player.seek_relative(seconds)
 
         def change_speed(self, text):
             if not self.player: return
@@ -1026,13 +1019,13 @@ if HAS_TSTUDIO:
                 pass
 
         def set_mark_a(self):
-            if not self.player or self.player.time_pos is None: return
-            self.mark_a = self.player.time_pos
+            if not self.player or self.player.position is None: return
+            self.mark_a = self.player.position
             self.btn_mark_a.setText(f"A: {self.format_time(self.mark_a)}")
 
         def set_mark_b(self):
-            if not self.player or self.player.time_pos is None: return
-            self.mark_b = self.player.time_pos
+            if not self.player or self.player.position is None: return
+            self.mark_b = self.player.position
             self.btn_mark_b.setText(f"B: {self.format_time(self.mark_b)}")
 
         def toggle_loop(self):
@@ -1043,7 +1036,7 @@ if HAS_TSTUDIO:
                 # If we turn on loop but missed a mark, maybe auto set it?
                 if self.mark_a is not None and self.mark_b is None:
                     # TV-W1: Guard player.duration
-                    duration = getattr(self.player, 'duration', None) if self.player else None
+                    duration = self.player.duration if self.player else None
                     if duration:
                         self.mark_b = duration
             else:
@@ -1116,7 +1109,7 @@ if HAS_TSTUDIO:
             base_dir = os.path.dirname(self.project_path) if self.project_path else os.getcwd()
             original_path = os.path.join(base_dir, "original_audio", f"{self.current_dub_id}.wav")
             if os.path.exists(original_path):
-                self.player.loadfile(original_path)
+                self.player.load(original_path)
             else:
                 QMessageBox.warning(self, "Not Found", f"Original audio not found:\n{original_path}")
                 
@@ -1215,17 +1208,17 @@ if HAS_TSTUDIO:
             subprocess.Popen(["python", script], cwd=os.path.dirname(script))
 
         def closeEvent(self, event):
-            """TV-C1: Clean shutdown — stop timers and terminate MPV player."""
+            """TV-C1: Clean shutdown — stop timers and terminate player backend."""
             # Stop UI update timer
             if hasattr(self, 'update_timer') and self.update_timer:
                 self.update_timer.stop()
             # Stop any waveform-related timers
             if hasattr(self, 'waveform_timer') and self.waveform_timer:
                 self.waveform_timer.stop()
-            # Terminate MPV player gracefully
+            # Shutdown player backend (mpv terminate / Qt stop) gracefully
             if hasattr(self, 'player') and self.player:
                 try:
-                    self.player.terminate()
+                    self.player.shutdown()
                 except Exception:
                     pass
             event.accept()
