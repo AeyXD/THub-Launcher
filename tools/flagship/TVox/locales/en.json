@@ -66,5 +66,6 @@
   "tts_output_dir": "Files at: {dir}",
   "tts_play_row": "🔊 Play voice-over for this row",
   "tts_stop_row": "⏹ Stop playing",
-  "tts_no_wav": "🔇 No audio file yet (press 🎙️ to generate first)"
+  "tts_no_wav": "🔇 No audio file yet (press 🎙️ to generate first)",
+  "tvox_mpv_macos_info": "🎬 Video player (mpv) temporarily unavailable on macOS (known bug).\n\nAll other features work: Whisper STT · AI TTS · AI translation · table · deploy.\n\nVideo player will return when a macOS-compatible mpv binding is available."
 }

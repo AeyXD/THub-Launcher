@@ -325,8 +325,12 @@ if HAS_TSTUDIO:
 
         def check_requirements(self):
             if not MPV_AVAILABLE:
-                msg = f"MPV Engine ไม่พร้อมใช้งาน!\n\nโปรดดาวน์โหลดไฟล์ libmpv-2.dll และนำมาวางไว้ที่:\n{os.path.dirname(__file__)}\n\nรายละเอียด Error:\n{MPV_ERROR}"
-                QMessageBox.critical(self, _("dlg_mpv_missing_title"), msg)
+                if sys.platform == "darwin":
+                    # macOS: ปิด mpv ชั่วคราว (SIGSEGV) — แจ้งแบบ info ไม่ต้อง dll
+                    QMessageBox.information(self, _("dlg_mpv_missing_title"), _("tvox_mpv_macos_info"))
+                else:
+                    msg = f"MPV Engine ไม่พร้อมใช้งาน!\n\nโปรดดาวน์โหลดไฟล์ libmpv-2.dll และนำมาวางไว้ที่:\n{os.path.dirname(__file__)}\n\nรายละเอียด Error:\n{MPV_ERROR}"
+                    QMessageBox.warning(self, _("dlg_mpv_missing_title"), msg)
 
         def on_profile_changed(self, text):
             super().on_profile_changed(text)
