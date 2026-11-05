@@ -63,5 +63,8 @@
   "tts_all_failed": "All rows failed — check internet connection (edge-tts requires network)",
   "tts_done_status": "Generated {n}/{total} rows → {dir}",
   "tts_done_msg": "Generated {n}/{total} rows",
-  "tts_output_dir": "Files at: {dir}"
+  "tts_output_dir": "Files at: {dir}",
+  "tts_play_row": "🔊 Play voice-over for this row",
+  "tts_stop_row": "⏹ Stop playing",
+  "tts_no_wav": "🔇 No audio file yet (press 🎙️ to generate first)"
 }

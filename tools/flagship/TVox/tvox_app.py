@@ -300,7 +300,13 @@ if HAS_TSTUDIO:
 
             # 7. Hook into TStudio's table row selection
             self.table.selectionModel().currentChanged.connect(self.on_tvox_row_selected)
-            
+
+            # 8. Context menu เล่นเสียง TTS รายแถว (คลิกขวา)
+            self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            self.table.customContextMenuRequested.connect(self._on_table_context_menu)
+            self._tts_play_proc = None
+            self._tts_playing_row = -1
+
             # Set initial title with profile
             # TV-W4: Pass the actual profile name into the format string
             active = getattr(self, '_profiles_data', {}).get("active_preset", "Default")
@@ -657,6 +663,86 @@ if HAS_TSTUDIO:
             QMessageBox.information(
                 self, _("tts_dialog_title"),
                 _("tts_done_msg", n=success, total=len(rows)) + "\n\n" + _("tts_output_dir", dir=out_dir))
+
+        # ─────────── เล่นเสียง TTS รายแถว (context menu คลิกขวา) ───────────
+
+        def _tts_wav_for_row(self, source_row):
+            """หาไฟล์ WAV ของแถวจาก tts_output/ — ชื่อตาม ID ใน CSV"""
+            if not hasattr(self, 'csv_path') or not self.csv_path:
+                return None
+            out_dir = os.path.join(os.path.dirname(os.path.abspath(self.csv_path)), "tts_output")
+            row = self.model._data[source_row] if 0 <= source_row < len(self.model._data) else None
+            if not row:
+                return None
+            row_id = row.get("id", f"row_{source_row}")
+            wav = os.path.join(out_dir, f"{row_id}.wav")
+            return wav if os.path.isfile(wav) else None
+
+        def _on_table_context_menu(self, pos):
+            from PyQt6.QtWidgets import QMenu
+            index = self.table.indexAt(pos)
+            if not index.isValid():
+                return
+            source_idx = self.proxy.mapToSource(index)
+            row = source_idx.row()
+
+            menu = QMenu(self)
+            wav = self._tts_wav_for_row(row)
+            if wav:
+                if self._tts_playing_row == row and self._tts_play_proc:
+                    act = menu.addAction(_("tts_stop_row"))
+                    act.triggered.connect(lambda: self._stop_tts_play())
+                else:
+                    act = menu.addAction(_("tts_play_row"))
+                    act.triggered.connect(lambda: self._play_tts_row(row, wav))
+            else:
+                act = menu.addAction(_("tts_no_wav"))
+                act.setEnabled(False)
+            menu.exec(self.table.viewport().mapToGlobal(pos))
+
+        def _play_tts_row(self, row, wav_path):
+            """เล่น WAV ของแถว + highlight แถวในตาราง"""
+            self._stop_tts_play()
+
+            import subprocess
+            try:
+                if sys.platform == "darwin":
+                    self._tts_play_proc = subprocess.Popen(
+                        ["afplay", wav_path],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                else:
+                    self._tts_play_proc = subprocess.Popen(
+                        ["start", "/b", wav_path], shell=True,
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                return
+
+            self._tts_playing_row = row
+            # highlight แถวที่กำลังเล่น
+            proxy_idx = self.proxy.mapFromSource(self.model.index(row, 0))
+            if proxy_idx.isValid():
+                self.table.selectRow(proxy_idx.row())
+
+            # เมื่อเล่นจบ → เคลียร์สถานะ
+            from PyQt6.QtCore import QTimer
+            def _on_done():
+                if self._tts_play_proc and self._tts_play_proc.poll() is None:
+                    QTimer.singleShot(200, _on_done)
+                    return
+                self._tts_play_proc = None
+                self._tts_playing_row = -1
+            QTimer.singleShot(500, _on_done)
+
+        def _stop_tts_play(self):
+            """หยุดเล่นเสียง"""
+            if self._tts_play_proc:
+                try:
+                    self._tts_play_proc.terminate()
+                    self._tts_play_proc.wait(2)
+                except Exception:
+                    pass
+                self._tts_play_proc = None
+            self._tts_playing_row = -1
 
         def open_stt_dialog(self):
             from PyQt6.QtWidgets import QDialog, QFormLayout, QComboBox, QDialogButtonBox
