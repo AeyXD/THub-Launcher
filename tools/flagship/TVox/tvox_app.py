@@ -24,10 +24,12 @@ from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 # Prepend TVox dir to PATH so libmpv-2.dll is found automatically
 os.environ["PATH"] = os.path.dirname(os.path.abspath(__file__)) + os.pathsep + os.environ["PATH"]
 
+# macOS: python-mpv 1.x + libmpv 2.x SIGSEGV at mpv_set_option — ปิดชั่วคาว (video player ใช้ไม่ได้ แต่ STT/TTS/แปล AI ใช้ได้ครบ)
+import platform as _platform
 try:
     import mpv
-    MPV_AVAILABLE = True
-    MPV_ERROR = ""
+    MPV_AVAILABLE = _platform.system() != 'Darwin'
+    MPV_ERROR = '' if MPV_AVAILABLE else 'Video player (mpv) disabled on macOS — known SIGSEGV in python-mpv 1.x + libmpv 2.x. STT/TTS/AI translate work normally.'
 except OSError as e:
     MPV_AVAILABLE = False
     MPV_ERROR = str(e)
