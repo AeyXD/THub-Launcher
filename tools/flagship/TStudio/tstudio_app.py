@@ -647,6 +647,59 @@ QProgressBar#dashTagBar { background: #313244; border: none; border-radius: 3px;
 QProgressBar#dashTagBar::chunk { background-color: #89b4fa; border-radius: 3px; }
 QLabel#dashTagLabel { font-size: 12px; background: transparent; color: #a6adc8; }
 QLabel#dashTagCount { font-size: 12px; background: transparent; color: #6c7086; }
+
+/* ── Dock Widget (TVox dubbing dock, dashboard, video player) ── */
+QDockWidget {
+    background: #1e1e2e;
+    color: #cdd6f4;
+}
+QDockWidget::title {
+    background: #181825;
+    padding: 6px 12px;
+    border-bottom: 1px solid #313244;
+    color: #a6adc8;
+    font-weight: bold;
+}
+QDockWidget::title:hover {
+    background: #313244;
+}
+
+/* ── Tab Widget (docking tabs) ── */
+QTabWidget::pane {
+    border: 1px solid #313244;
+    border-radius: 6px;
+    background: #181825;
+}
+QTabBar::tab {
+    background: #313244;
+    color: #a6adc8;
+    padding: 6px 14px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 2px;
+}
+QTabBar::tab:selected {
+    background: #89b4fa;
+    color: #11111b;
+    font-weight: bold;
+}
+QTabBar::tab:hover:!selected {
+    background: #45475a;
+}
+
+/* ── Progress Bar (dubbing dock progress) ── */
+QProgressBar {
+    background: #181825;
+    border: 1px solid #313244;
+    border-radius: 4px;
+    text-align: center;
+    color: #a6adc8;
+    font-size: 11px;
+}
+QProgressBar::chunk {
+    background: #a6e3a1;
+    border-radius: 3px;
+}
 """
 # ═════════════════════════════════════════════════════════════════════
 # THEME SYSTEM — 3 โหมด: system | dark | light
