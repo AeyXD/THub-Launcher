@@ -42,12 +42,23 @@ class ToolLauncher:
     @classmethod
     def resolve_app_python(cls, script_path):
         """เลือก Python ที่เหมาะกับแอป flagship: venv เฉพาะของแอปนั้น (ถ้ามี) —
+        แอปที่สืบทอดจากแอปอื่น (TVox ← TStudio) ใช้ venv ของแอปแม่ —
         ไม่งั้นใช้ตัวที่รันอยู่ (root venv ต้องมี deps ของแอป หรือ frozen build)"""
         app_dir = os.path.dirname(os.path.abspath(script_path))
+        # venv ของแอปตัวเอง
         for cand in (os.path.join(app_dir, ".venv", "bin", "python"),
                      os.path.join(app_dir, ".venv", "Scripts", "python.exe")):
             if os.path.isfile(cand):
                 return cand
+        # venv ของแอปที่แอปนี้สืบทอดจาก (TVox imports tstudio_app)
+        flagship = os.path.dirname(app_dir)  # tools/flagship/
+        for dep_dir in ("TStudio",):  # เพิ่มได้ถ้ามีแอปอื่นที่แชร์ venv
+            dep_venv = os.path.join(flagship, dep_dir, ".venv", "bin", "python")
+            dep_venv_win = os.path.join(flagship, dep_dir, ".venv", "Scripts", "python.exe")
+            if os.path.isfile(dep_venv):
+                return dep_venv
+            if os.path.isfile(dep_venv_win):
+                return dep_venv_win
         return sys.executable
 
     @classmethod
