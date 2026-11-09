@@ -1,243 +1,167 @@
 <div align="center">
   <img src="https://i.postimg.cc/HLncmbbK/THub-logo-game-mods-202606162214.jpg" alt="THub Logo" width="100"/>
   <h1>🚀 THub Launcher : The Flagship Suite</h1>
-  <p><b>Ultimate Game Modding & Localization Environment</b></p>
-   <p><b>โปรแกรมนี้ยังเป็นช่วง Beta อยู่นะครับ</b></p>
-  
-  [![Version](https://img.shields.io/badge/Version-2.2.0-blue.svg?style=for-the-badge)](#)
-  [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg?style=for-the-badge)](#)
-  [![Python](https://img.shields.io/badge/Built_with-Python_3.10_PyQt6-yellow.svg?style=for-the-badge)](#)
+  <p><b>Ultimate Game Modding & Localization Environment — Thai Pipeline Edition</b></p>
+
+  [![Version](https://img.shields.io/badge/Version-2.2.0_fork-blue.svg?style=for-the-badge)](#)
+  [![Platform](https://img.shields.io/badge/Platform-macOS_·_Windows-lightgrey.svg?style=for-the-badge)](#)
+  [![Python](https://img.shields.io/badge/Built_with-Python_3.12-yellow.svg?style=for-the-badge)](#)
+  [![UI](https://img.shields.io/badge/UI-PyQt6_·_CustomTkinter-green.svg?style=for-the-badge)](#)
 </div>
 
 <br/>
 
-**THub Launcher** คือศูนย์รวมและจุดศูนย์กลาง (Hub) ระดับมืออาชีพสำหรับนักแปลเกม นักม็อด และผู้ใช้งานทั่วไป! 
-เป้าหมายหลักของ THub คือการพลิกโฉมวงการ Game Localization โดยการรวบรวมเครื่องมือ **(The Flagship Suite)** ทั้งหมดให้อยู่ในที่เดียว ทำงานภายใต้สภาพแวดล้อมเดียวกัน (Unified Environment) พร้อมระบบการจัดการ Workspace ของแต่ละโปรเจกต์ที่เชื่อมถึงกันอย่างสมบูรณ์แบบ
+> [!NOTE]
+> Repository นี้เป็น **fork ของ [memolyviza2012-max/THub-Launcher](https://github.com/memolyviza2012-max/THub-Launcher)** (ฐาน THub 2.2 Flagship Suite) ดูแลโดย AeyXD —
+> สิ่งที่ fork เพิ่มคือ **พอร์ต macOS · Pipeline แปลไทยครบวงจร (AI → QA → Thai Wrap → Deploy) · Whisper ถอดเสียง · AI Dubbing · Workflow Wizard** และเครื่องมือเสริมอีกหลายส่วน
+> เครดิตฟีเจอร์เรือธงทั้งหมดเป็นของ upstream — รายละเอียดการพัฒนาต่อจาก fork ดูที่ `AGENTS.md`
+
+**THub Launcher** คือศูนย์รวมเครื่องมือแปลเกมและม็อดเกม (Hub) ที่รวม **Flagship Suite 6 แอป** ไว้ในสภาพแวดล้อมเดียว
+พร้อม Workspace ต่อโปรเจกต์ที่เชื่อมถึงกัน งานของ fork นี้โฟกัส **สายไทยครบวงจร**: ตั้งแต่แตกไฟล์เกม แปลด้วย AI ตรวจ QA
+จัดวรรณยุกต์ไทย (Thai Wrap) จน Pack กลับเข้าเกม — และสายสื่อ: ถอดเสียงวิดีโอเป็นซับ แปล พากย์ AI แล้วส่งออกกลับ
 
 ---
 
-## 🚀 What's New in THub 2.2.0 (Flagship Suite - PyQt6 60 FPS Edition)
-
-**THub 2.2 (Core Flagship Launcher)**
-- **PyQt6 60 FPS Engine:** เปลี่ยนผ่านสู่สถาปัตยกรรมกราฟิก PyQt6 ลื่นไหลระดับ 60 FPS พร้อมหน้าต่าง Cyberpunk Dark Theme สวยงามทันสมัย
-- **Project Completion & Filter Workflow:** เพิ่มระบบทำเครื่องหมายโปรเจกต์ "เสร็จสิ้นแล้ว" พร้อมระบบตัวกรองแสดงเฉพาะโปรเจกต์ที่กำลังพัฒนาหรือโปรเจกต์ที่เสร็จแล้ว
-- **07_Image_Resources Media Suite:** ระบบสร้างโฟลเดอร์สื่อประชาสัมพันธ์อัตโนมัติ พร้อมเทมเพลต Photoshop (.PSD) ในตัวสำหรับทำ Facebook Cover, Post และ Header
-- **Steam Official Art Auto-Downloader:** ดึงภาพหน้าปกทางการของเกมจาก Steam CDN ครบทุกสัดส่วน (16:9, โปสเตอร์แนวตั้ง, แบนเนอร์ และโลโก้ PNG แท้)
-- **AI Thai Title Logo Prompts:** ระบบคำนวณและสร้าง Prompt AI สำหรับสร้างโลโก้ชื่อเกมภาษาไทย 3D เพื่อนำมาไดคัทลงเทมเพลต PSD ได้ทันที
-- **Retrofit Existing Projects:** ปุ่มคลิกเดียวจัดระเบียบ `07_Image_Resources` ให้กับโปรเจกต์เก่าที่สร้างไปแล้ว
-- **Offline Modding-Knowledge Base:** บันเดิลคลังความรู้การแปลเกมและไบเบิลกว่า 428 รายการ (58 เอนจิ้น และ 319 ไบเบิลเกม) ใช้งานออฟไลน์ได้ทันทีโดยไม่ต้องต่อเน็ต
-- **AI Helper Prompt Engine:** ปรับปรุงโครงสร้างพร้อมรองรับโหมด CLI และตัวช่วยคิดชื่อเกมภาษาไทย
-
-- **Project Wizard:** ยกเครื่องหน้าต่างสร้างโปรเจกต์ใหม่ให้ลื่นไหลกว่าเดิม
-- **Project Cards:** เพิ่มการรองรับรูปภาพหน้าปก (Cover) ให้กับการ์ดโปรเจกต์
-- **AI Helper:** อัปเกรดพลัง Prompt ให้โหดและแม่นยำยิ่งขึ้นเมื่อใช้งานร่วมกับ CLI
-- **Localization:** รองรับ 5 ภาษาสมบูรณ์แบบ (ไทย, อังกฤษ, ญี่ปุ่น, จีน, รัสเซีย)
-- **Auto Update:** เพิ่มระบบตั้งค่าเปิด-ปิดการอัปเดตอัตโนมัติได้เอง
-- **Knowledge Syncing:** เพิ่มเนื้อหาความรู้และการซิงก์ข้อมูลอ้างอิงของระบบ
-
-**TStudio**
-- **Linked Profiles:** ระบบลิ้งก์โปรไฟล์โปรเจกต์อัตโนมัติ
-- **CSV Export:** รองรับการดึงข้อความออกมาเป็นตารางแปล (CSV) ได้อัตโนมัติ
-- **Floating Dock:** เพิ่มหน้าต่างเครื่องมือแบบลอยตัว (Floating Dock) ให้ใช้งานสะดวกขึ้น
-- **Tooltips & Menu:** เพิ่มคำอธิบาย (Tooltips) และเมนูใหม่
-- **Auto-tag & Auto-merge:** ระบบแท็กอัตโนมัติและผสานคำแปลเข้าด้วยกัน
-- **Dictionary Check & Highlight:** ฟังก์ชันตรวจสอบและไฮไลท์คำศัพท์อ้างอิงจากพจนานุกรม
-- **Translation Memory (TLM):** นำระบบความจำการแปลมาช่วยเพิ่มความแม่นยำ
-- **Smart Cache:** ระบบแคชคำศัพท์ชั่วคราว คำไหนเคยแปลแล้วจะไม่เสียค่า API ในการแปลซ้ำอีก!
-- **Shortcuts:** เพิ่มคีย์ลัดเพื่อเร่งความเร็วในการทำงาน
-- **Multi-AI Engine:** เพิ่มตัวเลือก API ให้หลากหลายและเหมาะสมกับปัจจุบันมากที่สุด
-- **TFormat Dynamic Engine:** ใช้พลัง AI วิเคราะห์และสร้าง Format ไฟล์ที่ระบบไม่เคยรู้จักมาก่อน เพื่อให้ TStudio รองรับได้ทันที
-
-**TRun**
-- **Auto Deploy:** รองรับการ Deploy ไฟล์ครบทุก Format แบบอัตโนมัติ
-- **Batch Processing:** สั่งรันแปลงและแปลทีละหลายๆ ไฟล์ (Batch) รวดเดียวจบ
-- **TLM Prompting:** ปรับปรุง Prompt ให้ฉลาดขึ้นด้วยระบบ TLM
-- **Resume & Recalculate:** แปลต่อได้ทันทีเมื่อไฟดับหรือกดหยุด พร้อมคำนวณยอดข้ามคำที่แปลแล้ว
-- **API Cost Saving:** ระบบแคชคำศัพท์สุดฉลาด ช่วยประหยัดค่า API ได้ราว 90% (เทียบกับ 1.0.8)
-- **Schedule Translation:** สามารถตั้งเวลาเริ่มแปลล่วงหน้าได้
-- **Smart Routing (Off-Peak):** ตั้งเวลาแปลช่วงเวลาที่กำหนด เพื่อสลับไปใช้ Local AI หรือผู้ให้บริการอื่นได้อัตโนมัติ
-
-**TVox**
-- **Bugfixes:** แก้บั๊ก Startup Crash
-- **UI Enhancements:** เพิ่ม Tooltips และคำอธิบายบนแผงควบคุม (ปุ่มเล่น, หยุด, ลูป ฯลฯ)
-
-**TGlyph**
-- **Full PUA Mode:** ระบบย้ายอักษรเดี่ยวลง PUA เต็มรูปแบบ (พร้อม Checkbox บนหน้า UI)
-- **Export Profiles:** เพิ่มระบบโปรไฟล์การ Export รองรับเอนจิ้นเกมที่หลากหลาย
-
-**TPUA**
-- **Legacy Support:** เพิ่มเครื่องมือ "F700 Legacy Font"
-- **Auto Y-Raise & Smart Bounds:** ระบบคำนวณระยะหลบหางสระ/วรรณยุกต์อัตโนมัติ
-- **Visual Font Tuner:** เพิ่มหน้าต่างจูนฟอนต์แบบเห็นภาพ (เหมือนที่มีใน TGlyph)
-
----
-
-## 💎 The Flagship Suite (ชุดโปรแกรมเรือธง)
-
-THub มาพร้อมกับระบบดาวน์โหลดและเชื่อมต่อกับ 5 สุดยอดเครื่องมือ ที่ถูกออกแบบมาเพื่อรองรับงานดัดแปลงเกมและงานแปลภาษาครบทุกมิติ:
-
-### 1. 📝 TStudio (Advanced Translation Engine)
-**"เครื่องมือแปลภาษาด้วย AI แบบ Line-by-Line"**
-*หัวใจหลักของการแปลเกม* TStudio ถูกออกแบบมาเพื่อจัดการไฟล์ข้อความขนาดใหญ่ (JSON, XML, CSV, TXT) มีระบบดึง Context เข้าช่วยแปล ทำให้การแปลเกมด้วย AI (Local/Cloud) มีความแม่นยำสูง พร้อมตารางเปรียบเทียบคำต่อคำ (Side-by-side) และระบบคำศัพท์เฉพาะ (Glossary)
-
-### 2. ⚡ TRun (Batch Automation & Runner)
-**"เครื่องมือทดสอบและแพตช์ไฟล์แบบรวดเร็ว"**
-เครื่องมือสำหรับจำลองการนำไฟล์ที่แปลเสร็จแล้วยัดกลับเข้าสู่ตัวเกม (Repacking) และรันทดสอบการทำงานแบบอัตโนมัติ ช่วยลดเวลาที่ต้องสลับหน้าจอไปมา ลดความผิดพลาดของ Human Error ในระหว่างกระบวนการ Build
-
-### 3. 🔤 TPUA (PUA Font Manager)
-**"จัดการและปรับแต่ง Private Use Area Fonts"**
-ปัญหาโลกแตกของภาษาไทยในเกมคือ "สระลอย" TPUA จะช่วยประมวลผล จัดเรียง และจัดการรหัสตัวอักษรไทยให้อยู่ในโซน PUA อัตโนมัติ เพื่อนำไปใช้แก้ปัญหาสระลอย/จม ในเอนจิ้นเกมยุคใหม่ได้อย่างหมดจด
-
-### 4. 🎨 TGlyph (Font Texture Generator)
-**"ระบบสร้าง Texture ไฟล์ฟอนต์ระดับ Pixel-Perfect"**
-หลังจากจัดการตัวอักษรด้วย TPUA แล้ว TGlyph จะรับไม้ต่อในการ Render ตัวอักษรเหล่านั้นให้ออกมาเป็นภาพ (Texture Atlas) เช่นไฟล์ `.DDS`, `.PNG` พร้อมทำแมปปิ้งพิกัด (Coordinates) ที่พร้อมนำไปยัดลงในไฟล์เกม (เช่น Unreal Engine หรือ Unity) ทันที
-
-### 5. 🎬 TVox (FMV Dubbing & Subtitling)
-**"ระบบพากย์เสียง AI และจัดการซับไตเติ้ลวิดีโอ (FMV)"**
-สำหรับเกมที่ใช้คัทซีนแบบวิดีโอ (Full Motion Video) TVox ออกแบบมาเพื่อถอดเสียง ฝังซับไตเติ้ล (Hardsub) และแม้กระทั่งการทำ AI Voice Dubbing ทับเสียงเดิมในวิดีโอ พร้อม Preview แบบ Real-time!
-
----
-
-## 🌟 ฟีเจอร์หลักของ Launcher (Core Features)
-
-- **📁 Unified Project Dashboard:** ศูนย์กลางการจัดการไฟล์แปล สร้างโปรเจกต์เดียว สามารถเรียกใช้ได้จากทุก Flagship Tools!
-- **☁️ Cloud Registry & Auto-Update:** สมุดหน้าเหลืองออนไลน์ที่เชื่อมต่อกับ GitHub ดึงรายการโปรแกรมและอัปเดต Flagship Tools เป็นเวอร์ชันล่าสุดแบบ Over-The-Air (OTA)
-- **🧩 Tool Library:** ศูนย์รวมซอฟต์แวร์เสริมของบุคคลที่สาม (Third-party Tools) เช่น FModel, QuickBMS, AssetStudio กว่า 10 ชนิด ที่กดรันได้ทันทีโดยไม่ต้องไปหาโหลดเอง
-- **📚 Modding Knowledge:** คลังความรู้และคู่มือฉบับเจาะลึก ฝังมาในโปรแกรม เพื่อสอนมือใหม่ให้เป็นนักม็อดระดับโปร
-- **🎨 Modern Glassmorphism UI:** ดีไซน์หน้าต่างโปรแกรมที่ล้ำสมัย สวยงาม ใช้งานลื่นไหล และรองรับระบบ Dark Mode สมบูรณ์แบบ
-
----
-
-## 📁 โครงสร้างโปรเจกต์มาตรฐาน (THub Workspace Structure)
-
-เมื่อคุณสร้างโปรเจกต์ใหม่ผ่าน THub Launcher ระบบจะจำลองและสร้างโครงสร้างโฟลเดอร์ทำงานที่เป็นระเบียบและเป็นมาตรฐานของงานแปลภาษาเกมให้โดยอัตโนมัติ ดังนี้:
+## 🇹🇭 Pipeline ภาษาไทย (หัวใจของ fork นี้)
 
 ```text
-📁 [โฟลเดอร์โปรเจกต์]/
-├── 📁 01_Original_Backup/       # โฟลเดอร์เก็บไฟล์ข้อความดิบต้นฉบับเกม (เช่น ภาษาอังกฤษ) เพื่อใช้สำรองข้อมูล
-├── 📁 02_Translation_Workspace/ # โฟลเดอร์สำหรับแก้ไขและบันทึกไฟล์คำแปลภาษาไทย (.csv, .json) ผ่าน TStudio
-├── 📁 03_Font_and_UI/           # โฟลเดอร์เก็บไฟล์ฟอนต์, รูปภาพ Atlas, พิกัดตัวอักษร, และการแมปสระ PUA
-├── 📁 04_Packed_Mod/            # โครงสร้างตัวม็อดทดสอบที่จัดเรียงพาธเสร็จพร้อมวางทับหรือลงเกมจริง
-├── 📁 05_Scripts_and_Tools/     # โฟลเดอร์สำหรับสคริปต์เสริมพิเศษ หรือโปรแกรมดึง/บีบอัดไฟล์เฉพาะเกม
-├── 📁 06_Releases/              # โฟลเดอร์จัดเก็บไฟล์ม็อดสำเร็จรูปเวอร์ชันที่เสร็จแล้ว (.zip, .rar) สำหรับนำไปแจกจ่าย
-├── 📄 thub_project.json         # บันทึกพาธเกม, ค่าการตั้งค่า, เวอร์ชันม็อด และข้อมูลเฉพาะของโปรเจกต์
-└── 📄 README.md                 # เอกสารแนะนำโปรเจกต์ที่สร้างอัตโนมัติ
+ไฟล์เกม/สื่อ → แตกไฟล์ (Game Tools) → ตาราง TStudio → แปล AI (Z.ai GLM / อื่น ๆ)
+    → ตรวจ QA (GLQA) → Thai Wrap (จัดรอยต่อคำไทย) → Deploy/Pack กลับเข้าเกม
+
+Whisper ถอดเสียง (TVox) → SRT ร่าง → เข้า pipeline เดียวกันผ่าน Game Tool "Subtitles"
+AI Dubbing (edge-tts) → WAV รายแถว + preview mix ฟังในเครื่องเล่น
+```
+
+**ตัวเชื่อมทั้งหมดเป็นเครื่องมือภายนอกแบบ subprocess (ไม่ bundle ใน repo):**
+
+| เครื่องมือ | ใช้ทำอะไร | สถานะ |
+|---|---|---|
+| thaiwrap | แทรก ZWSP/hairspace ที่รอยต่อคำไทย กันสระเกาะผิดตำแหน่ง | ✅ ใช้งาน (offline) |
+| thaistt (Whisper) | ถอดเสียงวิดีโอ/เสียง → SRT ร่าง ใน TVox | ✅ ใช้งาน (offline) |
+| GLQA checker | ตรวจคำแปล (empty / typo / ความยาว) + QA gate ก่อน deploy | ✅ ใช้งาน (offline) |
+| [TFormat-Plugins](https://github.com/AeyXD/TFormat-Plugins) | Parser + Game Tools รายเกม/รายฟอร์แมต (manifest-driven) | ✅ ติดตั้งผ่าน Plugin Manager |
+
+ไม่ตั้งค่าตัวไหน → ฟีเจอร์นั้น disabled อย่างสง่างาม + tooltip แนะนำ · ตั้งแล้วใช้งาน **offline ได้ทั้งหมด** (ยกเว้นการเรียก AI API)
+
+---
+
+## ✨ สิ่งที่ fork เพิ่มบนฐาน THub 2.2
+
+- **🍎 พอร์ต macOS เต็มรูปแบบ** — ทุกแอปมี `run_*_macos.sh` ของตัวเอง · guard ครบทุก Windows-ism (`creationflags`, `os.startfile`) · ทดสอบบูต offscreen 6/6 แอป
+- **🤖 Z.ai (GLM) Provider** — แปลจริงด้วยแพ็กเกจ GLM-5.3/flash/flashx พร้อม provider อื่น ๆ (DeepSeek, Gemini, Claude, OpenAI, OpenRouter, Local LLM)
+- **🛡️ QA Bridge + Deploy Gate** — รัน GLQA จากใน TStudio/TVox ดูผลเป็น dialog แก้อัตโนมัติได้ · เลือกเปิด gate บังคับตรวจก่อน deploy
+- **✍️ Thai Wrap 2 ระยะ** — resolve โหมดอัตโนมัติ (line_break ตาม Game Tool / zwsp) ใช้กับ temp copy ไม่แตะ working CSV
+- **🧰 Game Tools (Phase C)** — แตกไฟล์เกม/ซับ → CSV → Pack กลับ ผ่าน manifest ของ TFormat-Plugins · รวมถึงตัว "Subtitles" (.srt ↔ ตาราง ↔ pack กลับ)
+- **🎙️ Whisper ใน TVox (Phase S2)** — ถอดเสียงเป็นซับร่าง 100% local (thaistt + whisper.cpp) เลือกช่วง A–B ได้ · ร่างเขียนตรงเข้าตาราง
+- **🔊 AI Dubbing เฟส 1** — edge-tts เสียงไทย (Premwadee/Niwat) + ffmpeg (atempo/ducking/loudnorm) → WAV รายแถว ฟังได้ในแถวนั้นทันที
+- **🎬 Video Player Backend Abstraction** — Windows/Linux ใช้ mpv · macOS ใช้ Qt (QMediaPlayer + FFmpeg) รอบั๊ก python-mpv · ทุกฟีเจอร์เหมือนกัน (A-B loop, speed, ซับ)
+- **🧭 Workflow Wizard** — ตัวช่วยทำงานเป็นขั้น ①–⑥ dock ซ้าย (เลือกงาน → นำเข้า → ตรวจ → แปล AI → QA → เสร็จงาน) ตรวจสถานะอัตโนมัติ จำขั้นค้างไว้ต่อรอบหน้า — มือใหม่ไม่ต้องเปิดคู่มือ
+- **🏠 Welcome + Dashboard** — เปิดโปรแกรมมาที่หน้าแรกเสมอ พร้อมการ์ดทางลัด + ไฟล์ล่าสุด · Dashboard สถิติแปลสด ๆ ด้านขวา
+- **🎨 ธีม 3 โหมด** — ตามระบบ / มืด (Catppuccin Mocha) / สว่าง (Latte) สลับได้ทันที ครบทั้งหน้าต่างและ dialog
+- **🐍 Python 3.12 + venv รายแอป** — root venv (CustomTkinter) + venv ของ TStudio ที่ทุกแอป flagship แชร์กัน (PyQt6) · `resolve_app_python()` หำเบอร์ให้อัตโนมัติ
+- **🧪 ชุดทดสอบ offscreen** — `boot_test.py` (16 จุด) + `wizard_test.py` (34 จุด) รันได้ไม่ต้องมีจอ (CI-friendly)
+
+---
+
+## 💎 The Flagship Suite (6 แอป)
+
+### 1. 📝 TStudio (Advanced Translation Engine)
+*หัวใจหลักของการแปลเกม* แปลไฟล์ข้อความด้วย AI แบบ line-by-line พร้อม Context/Glossary/TLM ช่วย · ตารางเทียบคู่ · นำเข้าได้ทุกฟอร์แมตที่มี parser (รวม plugin + Game Tools) · มี **Workflow Wizard** พาทำทีละขั้นและ Dashboard สถิติ
+
+### 2. ⚡ TRun (Batch AI Runner)
+แปลทีละหลายไฟล์/หลายพันแถวในรวดเดียว ประหยัด token ด้วยการรวมกลุ่ม + cache · resume ต่อได้เมื่อไฟดับ · ตั้งเวลาแปล off-peak สลับ provider อัตโนมัติ
+
+### 3. 🅰️ TFont (PUA Text Mapper)
+แก้ "สระลอย/สระจม" แบบ batch — วิเคราะห์สระ/วรรณยุกต์ไทยแล้ว shift เข้าโซน PUA ตาม profile ฟอนต์ · รับไฟล์ .csv จาก TStudio ตรง ๆ
+
+### 4. 🔤 TPUA (PUA Font Manager)
+จัดการ mapping อักษร PUA รายตัว (encode/decode) พร้อมเครื่องมือ F700 Legacy Font และ Visual Font Tuner
+
+### 5. 🎨 TGlyph (Font Texture Generator)
+Render ฟอนต์เป็น Texture Atlas (.dds/.png) + mapping พิกัด พร้อมโหมด Full PUA และ export profile รายเอนจิ้น
+
+### 6. 🎬 TVox (FMV Subtitling & AI Dubbing)
+เครื่องเล่นวิดีโอในตัว (mpv / Qt·FFmpeg ตามแพลตฟอร์ม) + waveform + A-B loop + ซับสดบนจอ · **ถอดเสียง Whisper** เป็นซับร่าง · **พากย์ AI** เสียงไทยรายแถว · สืบทอดความสามารถ TStudio ทั้งหมด (รวม wizard)
+
+> ทั้ง 6 แอปเปิดจาก Launcher ได้ และแชร์ profile/API key/ค่าตั้งใน `Core/config.json` กันหมด — กรอกครั้งเดียวใช้ทุกแอป
+
+---
+
+## 🌟 ฟีเจอร์หลักของ Launcher
+
+- **📁 Unified Project Dashboard** — Workspace มาตรฐาน 7 โฟลเดอร์ ต่อโปรเจกต์ (`01_Original_Backup` … `06_Releases` + `thub_project.json`)
+- **🧭 Workflow Wizard (Ctrl+Shift+N)** — ทางเข้างานใหม่แบบพาทำทีละขั้น · เมนู/คีย์ลัดแบบเดิมใช้ได้ครบสำหรับ expert
+- **🧩 Plugin Manager** — Parser + Cloud plugin + Game Tools 3 แท็บ ดึงจาก TFormat-Plugins
+- **🛠️ Tool Library (OS-aware)** — QuickBMS, FModel, AssetStudio ฯลฯ แสดงเฉพาะที่มี build ของ OS นั้น
+- **📚 Modding-Knowledge Base** — คลังความรู้ 428 รายการ (58 เอนจิ้น) ใช้ offline ได้ · ย้ายเครื่องได้ (LOCAL_KB fallback)
+- **☁️ Cloud Registry & Auto-Update** — อัปเดต flagship tools OTA (fork นี้ชี้ registry ของตัวเอง)
+
+---
+
+## 📥 วิธีติดตั้ง
+
+### macOS (รันจากซอร์ส — ทางหลักของ fork)
+
+```bash
+# 1) ตัวหลักที่ต้องมี
+brew install python@3.12 ffmpeg
+
+# 2) root venv (Launcher หลัก)
+python3.12 -m venv .venv
+.venv/bin/pip install customtkinter pillow markdown packaging ddgs PyQt6 Pillow numpy
+
+# 3) เปิดแอป — ครั้งแรกระบบสร้าง venv ของ flagship เองอัตโนมัติ
+.venv/bin/python main.py                                   # Launcher หลัก
+tools/flagship/TStudio/run_tstudio_macos.sh                # หรือเข้าแอปตรง ๆ
+
+# 4) (แนะนำ) เครื่องมือไทย pipeline — ดูตารางด้านบน แล้วชี้ path ใน Tools → Settings
+#    เสริมใน venv ของ TStudio: edge-tts (พากย์ AI) · UnityPy (ไฟล์ Unity .bundle)
+```
+
+### Windows
+
+1. ดาวน์โหลด **`THub_Release_v1.x.x.zip`** จาก [Releases ของ upstream](https://github.com/memolyviza2012-max/THub-Launcher/releases)
+2. แตกไฟล์แล้วดับเบิลคลิก **`THub.exe`** → เมนู Flagship Products เพื่อติดตั้งแอป T-Series
+3. รันจากซอร์สก็ได้เหมือน macOS (แต่ใช้ `run_*.bat` และ libmpv-2.dll วางข้าง TStudio สำหรับเครื่องเล่นวิดีโอ)
+
+### ทดสอบ (ไม่ต้องมีจอ · ใช้ใน CI ได้)
+
+```bash
+python development/tests/boot_test.py      # TStudio boot 16 จุด
+python development/tests/wizard_test.py   # wizard + ระยะ 0 quick wins 34 จุด
 ```
 
 ---
 
-## 📥 วิธีติดตั้งและเข้าใช้งาน (Installation)
+## ⚙️ สำหรับ Developer
 
-1. ไปที่หมวด [Releases](../../releases) ของ Repository นี้
-2. ดาวน์โหลดไฟล์ **`THub_Release_v1.x.x.zip`** ล่าสุด
-3. แตกไฟล์ (Extract) ไว้ในโฟลเดอร์ที่คุณต้องการ (เช่น `D:\THub_Launcher\`)
-4. ดับเบิ้ลคลิกที่ไฟล์ **`THub.exe`** 
-5. ไปที่เมนู **Flagship Products** เพื่อเริ่มติดตั้ง T-Series ลงในเครื่องของคุณได้ทันที!
-
----
-
-## ⚙️ โครงสร้างและการทำงาน (For Developers)
-THub Launcher ถูกออกแบบมาในรูปแบบ **"Engine Host"** ด้วย `Python (CustomTkinter)`:
-- ตัวโปรแกรม `THub.exe` จะทำหน้าที่เป็นเหมือนเครื่องยนต์ประมวลผล Python 
-- เมื่อมีการดาวน์โหลด Flagship จาก GitHub โค้ดของโปรแกรมลูกๆ (เช่น `TStudio.py`) จะถูกเก็บไว้ในโฟลเดอร์ `tools/flagship/`
-- เมื่อผู้ใช้กดรัน THub จะทำการ Inject สคริปต์เข้าสู่หน่วยความจำตัวเอง ทำให้ไม่ต้อง Compile โปรแกรมใหม่เมื่อมีการอัปเดตย่อยๆ (Micro-updates)
-- ทำให้ผู้ใช้งานได้รับประสบการณ์อย่างไร้รอยต่อ และไม่จำเป็นต้องติดตั้งสภาพแวดล้อม (Environment) ใดๆ เพิ่มเติม!
-
-<br/>
-
-# คู่มือการใช้งาน THub Ecosystem (User Manual)
-
-คู่มือฉบับนี้อธิบายวิธีการใช้งานและหน้าที่ของปุ่มต่างๆ (UI) ในแอปพลิเคชันตระกูล **THub** ทั้งหมด เพื่อให้คุณสามารถใช้งาน "ศูนย์กลางการม็อดเกมยุค AI" ได้อย่างเต็มประสิทธิภาพ
+- **Launcher หลัก** = `main.py` (CustomTkinter) ทำหน้าที่ host + registry · **แอป flagship** = PyQt6 อยู่ที่ `tools/flagship/<App>/`
+- venv รายแอปโดย `core/tool_launcher.py: resolve_app_python()` (venv ของแอปถ้ามี → root venv เลือกให้อัตโนมัติ)
+- โมดูลกลางร่วมที่ `tools/flagship/Core/` (config, AI engine, PUA, UI shared) · locale 3 ชุดแยก (root / TStudio / TVox)
+- กฎเหล็กทั้งหมด (i18n, ธีม, atomic write, ห้าม commit runtime state, กฎ fork↔upstream) อยู่ที่ **[`AGENTS.md`](AGENTS.md)** — อ่านก่อนแตะโค้ดทุกครั้ง
+- ทดสอบธีม/สีเฉพาะจุด: `QT_QPA_PLATFORM=offscreen python <สคริปต์>`
 
 ---
 
-## 1. THub (Modder Hub Launcher)
-THub คือจุดเริ่มต้นของการทำงานทั้งหมด เปรียบเสมือนศูนย์บัญชาการที่เชื่อมต่อทุกแอปพลิเคชันไว้ด้วยกัน
+# คู่มือการใช้งานอย่างย่อ
 
-### ⚙️ ส่วนตั้งค่า (Header & Profiles)
-- **Profile Selector (เมนูดรอปดาวน์):** เลือกชื่อโปรเจกต์เกมที่คุณกำลังทำอยู่ การเลือก Profile จะเป็นการโหลดการตั้งค่า (API Keys, รูปแบบ Prompt) ของเกมนั้นๆ ขึ้นมา
-- **Settings (ปุ่มฟันเฟือง):** เปิดหน้าต่างตั้งค่าระบบหลัก เช่น การจัดการ API Keys สำหรับ AI หรือตั้งค่าโฟลเดอร์เริ่มต้น
+## 1. THub (Launcher)
+หน้าแรกของทุกงาน — สร้าง/เลือกโปรเจกต์ (โครงสร้าง 7 โฟลเดอร์สร้างให้อัตโนมัติ) แล้วเปิดแอป T-Series จากการ์ด · ทุกแอปแชร์ profile กันอัตโนมัติ
 
-### 🚀 ส่วนเครื่องมือเรือธง (Flagship Products Cards)
-ในพื้นที่ตรงกลางของ THub จะประกอบไปด้วย "การ์ดแอปพลิเคชัน" (App Cards) ที่จะช่วยให้คุณเข้าถึงเครื่องมือต่างๆ ได้ด้วยการคลิกเพียงครั้งเดียว:
-- **Launch TStudio (ปุ่มสีฟ้า):** เปิดโปรแกรมแปลภาษาแบบเจาะจงทีละบรรทัด (Line-by-Line)
-- **Launch TRun (ปุ่มสีเขียว):** เปิดโปรแกรมแปลภาษาแบบอัตโนมัติ (Batch Processing) สำหรับงานที่ต้องการทำทีละเยอะๆ
-- **Launch TPUA (ปุ่มสีม่วง):** เปิดเครื่องมือแปลงข้อความและจัดการฟอนต์ภาษาไทย (แก้สระลอย/เข้ารหัส PUA)
-- **Launch TVox (ปุ่มสีชมพู/แดง):** เปิดเครื่องมือจัดการซับไตเติลบนวิดีโอคัทซีน (FMV) พร้อมเล่นวิดีโอในตัว
+## 2. TStudio — เริ่มงาน 2 ทาง
+- **มือใหม่:** การ์ด **🧭 เริ่มงานใหม่ (พาทำทีละขั้น)** ที่หน้า Welcome หรือ `Ctrl+Shift+N` — wizard จะพาทีละขั้น นำเข้า → ตรวจร่าง → แปล AI → QA → ส่งออก โดยข้ามขั้น/ย่อได้ตลอด
+- **มืออาชีพ:** เมนู **📁 ไฟล์** / breadcrumb / คีย์ลัดเดิมทั้งหมด · เปิด `.srt` ระบบจะถามให้เลือกทางเข้า Game Tool Subtitles (แนะนำ — pack กลับได้) หรือ parser ทั่วไป
+- ปุ่มสำคัญ: **⚡ แปล** (รายแถว/ทั้งหมด/TRun) · **Ctrl+D Deploy** (QA gate → Thai Wrap → Pack กลับ) · Dashboard สถิติด้านขวา · ธีมสลับที่ View → Theme
 
-### 💬 ส่วนติดต่อผู้พัฒนา
-- **💬 THub Dev Room:** ปุ่มนี้จะพาคุณไปยังหน้าต่างหรือเว็บไซต์สำหรับพูดคุยกับผู้พัฒนา รายงานบั๊ก หรือดูอัปเดตใหม่ๆ
+## 3. TRun
+เลือกไฟล์/โฟลเดอร์ → Start · Pause/Stop ได้ระหว่างทาง · resume ต่อจากที่ค้าง + เลขไทย (๑-๙) ถูกแปลงเป็นอารบิกให้เบื้องหลังอัตโนมัติ
 
-> [!TIP]
-> โปรแกรมที่เปิดผ่าน THub จะได้รับการแชร์ Profile (ตั้งค่าต่างๆ) อัตโนมัติ ทำให้คุณไม่ต้องไปนั่งกรอก API Key หรือตั้งค่าซ้ำซ้อนในแต่ละโปรแกรม!
+## 4. TFont / TPUA / TGlyph (สายฟอนต์ไทย)
+TGlyph ทำ PUA glyph จาก .ttf → TPUA จูน mapping รายตัว → TFont แปลงข้อความแปลทั้งไฟล์เข้ารหัส PUA → พร้อม Pack เข้าเกม
 
----
-
-## 2. TStudio (Contextual Translation Studio)
-TStudio เป็นเครื่องมือสายคุณภาพ (Quality Focus) ออกแบบมาให้คุณวิเคราะห์และแปลข้อความทีละบรรทัด โดยมี AI คอยช่วยเหลือ
-
-### 🗂️ ส่วนการนำเข้าและตั้งค่า
-- **Load JSON/CSV:** ปุ่มสำหรับนำเข้าไฟล์ข้อความที่ถูกแกะออกมาจากเกม (รองรับรูปแบบ JSON และ CSV)
-- **Prompt Context (กล่องข้อความ):** ช่องสำหรับใส่กฎเกณฑ์ให้ AI เช่น "แปลให้เป็นคำราชาศัพท์" หรือ "ผู้พูดเป็นทหาร" ซึ่งระบบจะแนบไปกับคำสั่งแปลเสมอ
-- **Import/Export Glossary:** ปุ่มสำหรับนำเข้าหรือส่งออก "ไฟล์พจนานุกรม" (คำศัพท์เฉพาะของเกม) เพื่อให้ AI แปลคำเฉพาะได้ตรงกันทุกครั้ง (เช่น ชื่อเมือง ชื่อตัวละคร)
-
-### ✍️ ส่วนการแก้ไขข้อความ (Table UI)
-- **ตารางข้อความ (Data Table):** แสดงข้อความต้นฉบับ (Original Text) ทางฝั่งซ้าย และข้อความแปล (Translated Text) ฝั่งขวา สามารถดับเบิลคลิกที่ช่องแปลภาษาเพื่อพิมพ์แก้ไขเองได้
-- **Auto-Translate (ปุ่มสายฟ้า/AI):** ปุ่มกดเพื่อให้ AI แปลข้อความในบรรทัดที่เลือกให้ทันที
-- **Auto-Generate Glossary:** ปุ่มให้ AI อ่านเนื้อหาทั้งหมดแล้วแยก "คำศัพท์เฉพาะ" (Names, Places) ออกมาใส่ Glossary ให้โดยอัตโนมัติ
-
-### 📦 ส่วนการนำไปใช้ (Deployment)
-- **Deploy to Game:** หลังจากแปลและแก้ไขเสร็จแล้ว ปุ่มนี้จะบันทึกและแปลงไฟล์กลับไปเป็นฟอร์แมต (เช่น `.json`) ที่พร้อมนำไปใส่ในโฟลเดอร์เกมเพื่อใช้งานได้ทันที
-
----
-
-## 3. TRun (Batch Translation Automation)
-TRun คือเครื่องมือที่ออกแบบมาเพื่อลดภาระงานซ้ำซ้อน เหมาะสำหรับม็อดเดอร์ที่ขี้เกียจรอและต้องการแปลข้อความจำนวนมากๆ ในรวดเดียว
-
-### 📁 ส่วนการเลือกไฟล์
-- **Select File / Select Folder:** ปุ่มสำหรับเลือกไฟล์เดี่ยว หรือเลือกทั้งโฟลเดอร์ เพื่อนำเข้าสู่ระบบแปลอัตโนมัติคิว (Queue)
-
-### ▶️ ส่วนควบคุมการทำงาน (Playback Controls)
-- **Start (เริ่มแปล):** เริ่มการทำงาน AI ให้แปลไฟล์ในคิวตามลำดับ 
-- **Pause (หยุดชั่วคราว):** หยุดการทำงานชั่วคราว (จะหยุดหลังจากเสร็จสิ้นบรรทัดปัจจุบัน)
-- **Stop (ยกเลิก):** ยกเลิกคิวงานที่กำลังทำอยู่ทั้งหมด
-
-> [!NOTE]
-> **ระบบอัตโนมัติใน TRun:** ทุกครั้งที่แปลผ่าน TRun (หรือ TStudio) ระบบจะแอบทำงานเบื้องหลังด้วยการดักจับตัวเลขไทย (๑-๙) และแปลงกลับเป็นเลขอารบิก (1-9) ให้โดยอัตโนมัติ เพื่อป้องกันบั๊กเวลาเกมอ่านค่าตัวเลข
-
----
-
-## 4. TPUA (PUA Font Mapping Tool)
-ใช้สำหรับแก้ปัญหาภาษาไทยที่แสดงผลสระหรือวรรณยุกต์ซ้อนกัน (สระลอย) โดยการเปลี่ยนตัวอักษรธรรมดาให้เป็นรหัสอักขระพิเศษ (PUA - Private Use Area) ที่ฟอนต์เกมรองรับ
-
-### 📥 ส่วนนำเข้าข้อความ
-- **Drag & Drop Area (พื้นที่ลากวาง):** คุณสามารถลากไฟล์ข้อความ (เช่น `.csv`, `.txt`) มาวางในกรอบนี้ได้เลย ระบบจะอ่านข้อความให้ทันที
-- **Text Box (ช่องข้อความ):** คุณสามารถพิมพ์หรือวางข้อความ (Paste) ลงไปในกล่องข้อความฝั่งซ้าย (Input) ได้โดยตรง
-
-### ⚙️ ส่วนควบคุมการแปลงค่า (Encoding/Decoding)
-- **Encode to PUA (แปลงเป็นรหัสเกม):** ปุ่มกดเพื่อแปลงอักษรไทยปกติ (ฝั่งซ้าย) ให้กลายเป็นรหัส PUA (ฝั่งขวา) ที่สระวรรณยุกต์ได้รับการจัดเรียงใหม่แล้ว (เช่น จาก `กั่` กลายเป็นรหัสพิเศษ)
-- **Decode from PUA (ถอดรหัส):** หากคุณไปดึงไฟล์ PUA จากในเกมมา ปุ่มนี้จะช่วยถอดรหัสให้กลับมาเป็นภาษาไทยปกติที่คนอ่านออก
-- **Export/Save:** บันทึกไฟล์ข้อความฝั่งขวาที่แปลงเสร็จแล้วเพื่อนำไปใช้ต่อในเกม
-
----
-
-## 5. TVox (FMV & Subtitle Editor)
-TVox คือเครื่องมือสุดล้ำที่ออกแบบมาเพื่อ "วิดีโอคัทซีน (FMV)" โดยเฉพาะ ช่วยให้การทำซับไตเติลตรงกับเสียงพูดแบบเป๊ะๆ
-
-### 🎬 ส่วนเครื่องเล่นวิดีโอ (Video Player)
-- **หน้าจอวิดีโอ:** แสดงภาพวิดีโอและ **Live Subtitles (ซับไตเติลแบบเรียลไทม์)** บนหน้าจอ
-- **ปุ่ม Play / Pause:** เล่นหรือหยุดวิดีโอชั่วคราว
-- **แถบเลื่อนเวลา (Seekbar):** เลื่อนไปยังช่วงเวลาต่างๆ ของวิดีโอ
-
-### 🔊 ส่วนคลื่นเสียง (Waveform UI)
-- **หน้าต่าง Waveform:** กราฟคลื่นเสียงที่อยู่ด้านล่าง หรือข้างๆ วิดีโอ ช่วยให้คุณมองเห็นว่าเสียงพูดเริ่มตรงไหนและจบตรงไหน (สร้างจากเครื่องมือ `ffmpeg/ffprobe` เบื้องหลัง) ช่วยให้คุณกะเวลาปรับไทม์โค้ดซับไตเติลได้แม่นยำยิ่งขึ้น
-
-### 📝 ส่วนจัดการซับไตเติล (Subtitle Editor)
-- **ตารางซับไตเติล:** คล้ายกับ TStudio แต่จะมีการแสดงช่อง **Timecode (เวลาเริ่ม - เวลาจบ)** แนบมาด้วย
-- **Sync Timeline (ซิงค์เวลา):** หากคุณคลิกที่บรรทัดซับไตเติล วิดีโอจะกระโดดข้ามไปเล่น ณ เวลาที่กำหนดในไทม์โค้ดนั้นทันที ทำให้ตรวจสอบคำแปลได้ง่ายขึ้น
-- **Save Subtitle:** บันทึกไฟล์ซับไตเติล (เช่นรูปแบบ `.srt` หรือ JSON สำหรับเกม) ไปพร้อมกับเวลาที่ตั้งไว้
-
+## 5. TVox — ซับ + พากย์
+เปิดวิดีโอ → ดูซับสดบนจอ + waveform จัดจังหวะ → **🧬 ถอดเสียง** (Whisper, เลือกช่วง A–B ได้) → ร่างเข้าตาราง TStudio ทันที → แปล → **🎙️ พากย์ AI** ฟังได้รายแถว → **ส่งออกซับ .srt** ผ่านปุ่ม Deploy (Thai Wrap อัตโนมัติ)
 
 <div align="center">
-  <b>Made with ❤️ for the Modding Community</b>
+  <b>Made with ❤️ for the Modding Community · Fork stack maintained by AeyXD</b>
 </div>
