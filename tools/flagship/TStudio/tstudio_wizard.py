@@ -50,6 +50,8 @@ class WorkflowWizard(QDockWidget):
         # csv ของงานรอบก่อนที่ "เริ่มงานใหม่" แล้วให้ลืม — auto-detect ไม่นับไฟล์นี้
         # จนกว่าผู้ใช้จะนำเข้าไฟล์ใหม่ผ่านปุ่มของขั้น ② (ปุ่มนำเข้าทุกตัวเคลียร์ค่านี้)
         self._stale_csv = ""
+        # ระยะ 2-3: จำนวนจุด QA รอบล่าสุด (memory + wizard_state)
+        self._qa_issues = 0
 
         root = QWidget()
         root.setObjectName("wzRoot")
@@ -59,18 +61,22 @@ class WorkflowWizard(QDockWidget):
         lay.setContentsMargins(10, 8, 10, 8)
         lay.setSpacing(6)
 
-        # ── หัว wizard: บอกกำลังทำอะไร ──
+        # ── หัว wizard: strip สรุปหน้างาน (ระยะ 2-3) + บอกกำลังทำอะไร ──
         head = QFrame()
         head.setObjectName("wzHeader")
         head_lay = QVBoxLayout(head)
         head_lay.setContentsMargins(8, 6, 8, 6)
         head_lay.setSpacing(2)
+        self.lbl_summary = QLabel("")  # "n แถว · แปลแล้ว x · QA y จุด · โหมด"
+        self.lbl_summary.setObjectName("wzSummary")
+        self.lbl_summary.setWordWrap(True)
         self.lbl_head = QLabel(_("wz_header_title"))
         self.lbl_head.setObjectName("wzHeaderTitle")
         self.lbl_head.setWordWrap(True)
         self.lbl_sub = QLabel("")
         self.lbl_sub.setObjectName("wzHeaderSub")
         self.lbl_sub.setWordWrap(True)
+        head_lay.addWidget(self.lbl_summary)
         head_lay.addWidget(self.lbl_head)
         head_lay.addWidget(self.lbl_sub)
         lay.addWidget(head)
@@ -251,12 +257,17 @@ class WorkflowWizard(QDockWidget):
         return page
 
     def _page6(self):
-        """⑥ เสร็จงาน — วิดีโอ: พากย์ AI/ส่งออกซับ · เกม: Pack กลับเข้าเกม"""
+        """⑥ เสร็จงาน — วิดีโอ: พากย์ AI/ทำวิดีโอพากย์/ส่งออกซับ · เกม: Pack กลับเข้าเกม"""
         page, lay = self._new_page()
         self.btn_s6_tts = self._big_btn(_("wz_s6_video_tts"), self._do_tts, primary=True)
         lay.addWidget(self.btn_s6_tts)
         self.lbl_s6_tts_note = self._hint("wz_s6_tts_only_tvox")
         lay.addWidget(self.lbl_s6_tts_note)
+        # ระยะ 2-2: ทำวิดีโอพากย์ (พอร์ต make_videos_r1.sh ของ hub) — TVox เท่านั้น
+        self.btn_s6_video = self._big_btn(_("wz_s6_make_video"), self._make_video, primary=True)
+        lay.addWidget(self.btn_s6_video)
+        self.lbl_s6_video_note = self._hint("wz_s6_video_only_tvox")
+        lay.addWidget(self.lbl_s6_video_note)
         self.btn_s6_srt = self._big_btn(_("wz_s6_export_srt"), self._deploy)
         lay.addWidget(self.btn_s6_srt)
         self.btn_s6_pack = self._big_btn(_("wz_s6_pack"), self._deploy, primary=True)
@@ -320,9 +331,24 @@ class WorkflowWizard(QDockWidget):
 
     def _run_qa(self):
         self.studio.run_qa_check()
+        self._collect_qa_issues()  # ระยะ 2-3: จำจำนวนจุดรอบล่าสุดไว้บนหัว wizard
         self.done.add(5)
         self._save_state()
         self.goto(6)
+
+    def _collect_qa_issues(self):
+        """นับจุดจาก qa_audit.csv ที่ checker เขียนไว้ข้าง CSV (ผลรอบล่าสุด)"""
+        csv_path = getattr(self.studio, "csv_path", "") or ""
+        report = os.path.join(os.path.dirname(os.path.abspath(csv_path)), "qa_audit.csv")
+        n = 0
+        try:
+            if os.path.isfile(report):
+                with open(report, "r", encoding="utf-8", errors="replace") as f:
+                    lines = [ln for ln in f.read().splitlines() if ln.strip()]
+                n = max(0, len(lines) - 1)  # ตัด header
+        except Exception:
+            n = 0
+        self._qa_issues = n
 
     def _run_qa_fix(self):
         self.studio.run_qa_check(fix=True)
@@ -331,6 +357,12 @@ class WorkflowWizard(QDockWidget):
         tts = getattr(self.studio, "open_tts_dialog", None)
         if callable(tts):
             tts()
+
+    def _make_video(self):
+        """🎬 ทำวิดีโอพากย์ (ระยะ 2-2) — dialog ของ TVox (dub/mix + ฝังซับ)"""
+        fn = getattr(self.studio, "open_video_export_dialog", None)
+        if callable(fn):
+            fn()
 
     def _deploy(self):
         """เส้นทาง Ctrl+D เดิม: QA gate → Thai Wrap → Pack กลับ (SRT/ไฟล์เกม)"""
@@ -441,9 +473,29 @@ class WorkflowWizard(QDockWidget):
         self.lbl_s3_video.setVisible(is_video)
         self.btn_s6_tts.setVisible(is_video)
         self.lbl_s6_tts_note.setVisible(is_video and not callable(getattr(self.studio, "open_tts_dialog", None)))
+        # ระยะ 2-2: ปุ่มทำวิดีโอพากย์ — TVox เท่านั้น + ต้องพร้อม (วิดีโอเปิด + CSV เป็นชุดซับ)
+        has_vexp = callable(getattr(self.studio, "open_video_export_dialog", None))
+        self.btn_s6_video.setVisible(is_video)
+        self.lbl_s6_video_note.setVisible(is_video and not has_vexp)
+        vexp_ready, vexp_reason = (False, "")
+        if has_vexp:
+            try:
+                vexp_ready, vexp_reason = self.studio.can_make_dub_video()
+            except Exception:
+                vexp_ready, vexp_reason = False, ""
+        self.btn_s6_video.setEnabled(vexp_ready)
+        self.btn_s6_video.setToolTip(_(vexp_reason) if (has_vexp and not vexp_ready and vexp_reason) else "")
         self.btn_s6_srt.setVisible(is_video)
         self.btn_s6_pack.setVisible(not is_video)
-        self.lbl_sub.setText(_("wz_mode_video") if is_video else _("wz_mode_game") if self.mode else _("wz_mode_none"))
+        mode_label = _("wz_mode_video") if is_video else _("wz_mode_game") if self.mode else _("wz_mode_none")
+        self.lbl_sub.setText(mode_label)
+        # ระยะ 2-3: strip สรุปหน้างานบนหัว wizard (มองเห็นตลอด ไม่ต้องเข้าขั้น ③④)
+        if total > 0:
+            self.lbl_summary.setText(_("wz_summary", n=total, done=done_n,
+                                       qa=getattr(self, "_qa_issues", 0), mode=mode_label))
+            self.lbl_summary.show()
+        else:
+            self.lbl_summary.hide()
 
         # ข้อความสถานะรายหน้า
         if imported:
@@ -494,8 +546,10 @@ class WorkflowWizard(QDockWidget):
             cfg[CONFIG_KEY] = {
                 "mode": self.mode,
                 "step": self.step,
+                "current_step": self.step,  # ระยะ 2-1: ฟิลด์ตามสเปก (mirror ของ step — บันทึกทุก goto())
                 # จำไฟล์งานเฉพาะตอนมีงานค้าง — "เริ่มงานใหม่" แล้วไม่เสนอ resume ไฟล์เก่า
                 "csv": (getattr(self.studio, "csv_path", "") or "") if (self.mode or self.step > 1) else "",
+                "qa_issues": getattr(self, "_qa_issues", 0),
             }
             TStudioCore.save_config(cfg)
         except Exception as e:
@@ -506,8 +560,28 @@ class WorkflowWizard(QDockWidget):
             from tstudio_core import TStudioCore
             state = TStudioCore.load_config().get(CONFIG_KEY, {}) or {}
             self.mode = state.get("mode") if state.get("mode") in ("video", "game") else None
-            step = state.get("step", 1)
+            step = state.get("current_step") or state.get("step", 1)
             self.step = max(1, min(6, int(step))) if step else 1
+            self._qa_issues = int(state.get("qa_issues", 0) or 0)
             self.pages.setCurrentIndex(self.step - 1)
         except Exception:
             pass
+
+    def resume_saved_job(self):
+        """ระยะ 2-1: การ์ด ▶️ ทำงานต่อ — เปิด wizard + โหลด CSV เดิม + กลับขั้นที่ค้าง ในคลิกเดียว"""
+        try:
+            from tstudio_core import TStudioCore
+            state = TStudioCore.load_config().get(CONFIG_KEY, {}) or {}
+        except Exception:
+            return False
+        csv_path = state.get("csv", "") or ""
+        step = state.get("current_step") or state.get("step") or 1
+        if not csv_path or not os.path.exists(csv_path):
+            return False
+        self.show()
+        self.raise_()
+        self._stale_csv = ""  # กลับมาทำงานนี้ต่อ — นับสถานะตามปกติ
+        self.studio.csv_path = csv_path
+        self.studio._load_csv()
+        self.goto(max(1, min(6, int(step))))
+        return True

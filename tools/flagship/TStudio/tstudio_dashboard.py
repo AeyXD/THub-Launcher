@@ -73,6 +73,15 @@ class WelcomeScreen(QWidget):
         root.addWidget(lbl_hero)
         root.addWidget(lbl_sub)
 
+        # ระยะ 2-1: การ์ด "ทำงานต่อ" — แสดงเฉพาะเมื่อ wizard_state มีงานค้าง (csv ยังมีจริง)
+        # กดครั้งเดียว: เปิด wizard → โหลด CSV → กลับขั้นที่ค้าง
+        self.btn_resume = QPushButton("")
+        self.btn_resume.setObjectName("wsResumeCard")
+        self.btn_resume.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_resume.clicked.connect(self._resume_wizard_job)
+        self.btn_resume.hide()
+        root.addWidget(self.btn_resume)
+
         grid = QGridLayout()
         grid.setSpacing(14)
         cards = [
@@ -105,6 +114,37 @@ class WelcomeScreen(QWidget):
 
         self.refresh_recent()
 
+    def showEvent(self, event):
+        """กลับมาหน้า Welcome (Ctrl+Shift+H / wizard reset) → รีเฟรชไฟล์ล่าสุด + การ์ดทำงานต่อ"""
+        super().showEvent(event)
+        try:
+            self.refresh_recent()
+        except Exception:
+            pass
+
+    def _resume_wizard_job(self):
+        """การ์ด ▶️ ทำงานต่อ → wizard.resume_saved_job() (โหลด CSV + กลับขั้นค้าง)"""
+        wz = getattr(self.studio, "wizard_dock", None)
+        if wz is not None and wz.resume_saved_job():
+            return
+        self._refresh_resume_card()  # งานค้างหายไปแล้ว (ไฟล์ถูกลบ) — ซ่อนการ์ด
+
+    def _refresh_resume_card(self):
+        """แสดง/ซ่อนการ์ดทำงานต่อตาม wizard_state (runtime config)"""
+        state = {}
+        try:
+            state = TStudioCore.load_config().get("wizard_state", {}) or {}
+        except Exception:
+            pass
+        csv_path = state.get("csv", "") or ""
+        step = state.get("current_step") or state.get("step") or 1
+        if csv_path and os.path.exists(csv_path):
+            self.btn_resume.setText(_("ws_resume_card", file=os.path.basename(csv_path), step=int(step)))
+            self.btn_resume.setToolTip(csv_path)
+            self.btn_resume.show()
+        else:
+            self.btn_resume.hide()
+
     def refresh_recent(self):
         while self.recent_container.count():
             item = self.recent_container.takeAt(0)
@@ -132,6 +172,7 @@ class WelcomeScreen(QWidget):
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.clicked.connect(lambda _=False, p=path: self.open_recent_requested.emit(p))
             self.recent_container.addWidget(btn)
+        self._refresh_resume_card()  # ระยะ 2-1: อัปเดตการ์ดทำงานต่อไปพร้อมกัน
 
 
 class _StatCard(QFrame):

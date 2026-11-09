@@ -646,8 +646,11 @@ QProgressBar#dashBar::chunk { background-color: #a6e3a1; border-radius: 4px; }
 QProgressBar#dashTagBar { background: #313244; border: none; border-radius: 3px; }
 QProgressBar#dashTagBar::chunk { background-color: #89b4fa; border-radius: 3px; }
 /* ── Workflow Wizard (tstudio_wizard.py — ใช้สีคู่ที่มีใน _MOCHA_TO_LATTE แล้วทั้งหมด) ── */
+QPushButton#wsResumeCard { text-align: left; background: #181825; border: 1px solid #89b4fa; border-radius: 8px; padding: 8px 12px; color: #cdd6f4; font-size: 13px; font-weight: 600; }
+QPushButton#wsResumeCard:hover { background: #1e2433; }
 QFrame#wzHeader { background: #181825; border: 1px solid #313244; border-radius: 8px; }
 QFrame#wzHeader QLabel { background: transparent; }
+QLabel#wzSummary { color: #a6e3a1; font-size: 11px; font-weight: 600; }
 QLabel#wzHeaderTitle { color: #cdd6f4; font-weight: bold; font-size: 13px; }
 QLabel#wzHeaderSub { color: #a6adc8; font-size: 11px; }
 QFrame#wzSteps { background: transparent; border: none; }
@@ -5655,6 +5658,12 @@ class TranslationStudio(QMainWindow):
         """กลับสู่หน้าแรก (Ctrl+Shift+H)"""
         if hasattr(self, 'workspace_stack'):
             self.workspace_stack.setCurrentIndex(0)
+        # รีเฟรชการ์ด "ทำงานต่อ" + ไฟล์ล่าสุดเสมอ — กรณีอยู่หน้า Welcome อยู่แล้วจะไม่เกิด showEvent
+        if hasattr(self, 'welcome_screen'):
+            try:
+                self.welcome_screen.refresh_recent()
+            except Exception:
+                pass
 
     def _refresh_qa_menu_state(self):
         """เปิด/ปิดเมนู QA ตาม qa_checker_path ใน config (graceful — หาไม่เจอก็แค่ disabled)"""

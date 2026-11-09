@@ -676,6 +676,101 @@ if HAS_TSTUDIO:
                 self, _("tts_dialog_title"),
                 _("tts_done_msg", n=success, total=len(rows)) + "\n\n" + _("tts_output_dir", dir=out_dir))
 
+        # ─────────── 🎬 ทำวิดีโอพากย์ (spec-workflow-wizard.md ระยะ 2-2) ───────────
+        # พอร์ตจาก make_videos_r1.sh ของ hub — orchestration ผ่าน tvox_video_export
+
+        def can_make_dub_video(self):
+            """(พร้อม, เหตุผล key) สำหรับปุ่ม wizard ขั้น ⑥ — ไม่ต้อง import โมดูล TVox ฝั่ง wizard"""
+            import tvox_video_export as ve
+            return ve.video_export_readiness(self)
+
+        def open_video_export_dialog(self):
+            from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QLabel, QComboBox,
+                                         QCheckBox, QDialogButtonBox, QMessageBox)
+            import tvox_video_export as ve
+            from ffmpeg_utils import get_ffmpeg_path
+
+            ok, reason = ve.video_export_readiness(self)
+            if not ok:
+                QMessageBox.information(self, _("vexp_title"), _(reason))
+                return
+
+            items = ve.build_items(self.model._data, ve.tts_dir_for(self.csv_path))
+            if not items:
+                # ยังไม่พากย์ — เตือนและเสนอพากย์ก่อนอัตโนมัติ (ทำงานได้แม้ยังไม่กด TTS)
+                box = QMessageBox(self)
+                box.setWindowTitle(_("vexp_title"))
+                box.setIcon(QMessageBox.Icon.Question)
+                box.setText(_("vexp_need_tts_msg"))
+                btn_tts = box.addButton(_("vexp_need_tts_btn"), QMessageBox.ButtonRole.YesRole)
+                box.addButton(QMessageBox.StandardButton.Cancel)
+                box.exec()
+                if box.clickedButton() is btn_tts:
+                    self.open_tts_dialog()
+                return
+
+            ff = get_ffmpeg_path()
+            if not ff:
+                QMessageBox.warning(self, _("vexp_title"), _("tts_need_ffmpeg"))
+                return
+            srt = ve.find_packed_srt(self)
+
+            dlg = QDialog(self)
+            dlg.setWindowTitle(_("vexp_title"))
+            lay = QVBoxLayout(dlg)
+            lay.setSpacing(8)
+            lbl_info = QLabel(_("vexp_ready", n=len(items)))
+            lbl_info.setWordWrap(True)
+            lay.addWidget(lbl_info)
+            cbo_mode = QComboBox()
+            cbo_mode.addItem(_("vexp_mode_dub"), "dub")
+            cbo_mode.addItem(_("vexp_mode_mix"), "mix")
+            cbo_mode.addItem(_("vexp_mode_both"), "both")
+            lay.addWidget(cbo_mode)
+            chk_subs = QCheckBox(_("vexp_embed_subs"))
+            chk_subs.setEnabled(bool(srt))
+            chk_subs.setChecked(bool(srt))
+            chk_subs.setToolTip(srt if srt else _("vexp_no_subs"))
+            lay.addWidget(chk_subs)
+            buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+            buttons.accepted.connect(dlg.accept)
+            buttons.rejected.connect(dlg.reject)
+            lay.addWidget(buttons)
+            if dlg.exec() != QDialog.DialogCode.Accepted:
+                return
+
+            mode = cbo_mode.currentData()
+            sub_path = srt if (srt and chk_subs.isChecked()) else None
+            modes = ["dub", "mix"] if mode == "both" else [mode]
+            video_path = self.player.path
+            outputs = []
+            for m in modes:
+                ok_m, out_m = ve.export_dubbed_video(
+                    video_path, items, "", m, ff, parent=self,
+                    srt_path=(sub_path if m == "dub" else None))
+                if not ok_m:
+                    if out_m:  # ว่าง = ผู้ใช้กดยกเลิกระหว่างทำ — ไม่ต้องตะโกน
+                        QMessageBox.critical(self, _("vexp_title"), _("vexp_fail", err=out_m))
+                    return
+                outputs.append(out_m)
+
+            box = QMessageBox(self)
+            box.setWindowTitle(_("vexp_done_title"))
+            box.setIcon(QMessageBox.Icon.Information)
+            box.setText(_("vexp_done_msg", n=len(outputs)))
+            btn_dir = box.addButton(_("vexp_open_dir"), QMessageBox.ButtonRole.YesRole)
+            btn_play = box.addButton(_("vexp_play"), QMessageBox.ButtonRole.ActionRole)
+            box.addButton(QMessageBox.StandardButton.Close)
+            box.exec()
+            if box.clickedButton() is btn_dir:
+                from PyQt6.QtGui import QDesktopServices
+                from PyQt6.QtCore import QUrl
+                QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(outputs[0])))
+            elif box.clickedButton() is btn_play:
+                self.player.load(outputs[0], start_paused=False)
+                self.btn_play_pause.setText("\u23f8")
+                self.video_widget.setFocus()
+
         # ─────────── เล่นเสียง TTS รายแถว (context menu คลิกขวา) ───────────
 
         def _tts_wav_for_row(self, source_row):
