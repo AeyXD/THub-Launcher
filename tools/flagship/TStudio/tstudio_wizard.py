@@ -47,6 +47,9 @@ class WorkflowWizard(QDockWidget):
         self.done = set()         # เลขขั้นที่เสร็จ
         self.skipped = set()      # เลขขั้นที่ถูกข้าม
         self._collapsed = False
+        # csv ของงานรอบก่อนที่ "เริ่มงานใหม่" แล้วให้ลืม — auto-detect ไม่นับไฟล์นี้
+        # จนกว่าผู้ใช้จะนำเข้าไฟล์ใหม่ผ่านปุ่มของขั้น ② (ปุ่มนำเข้าทุกตัวเคลียร์ค่านี้)
+        self._stale_csv = ""
 
         root = QWidget()
         root.setObjectName("wzRoot")
@@ -72,7 +75,7 @@ class WorkflowWizard(QDockWidget):
         head_lay.addWidget(self.lbl_sub)
         lay.addWidget(head)
 
-        # ── Stepper: รายชื่อ 6 ขั้น + glyph สถานะ ──
+        # ── Stepper: รายชื่อ 6 ขั้น + glyph สถานะ — คลิกแถวเพื่อกระโดดขั้นได้ ──
         self.step_rows = []
         steps_frame = QFrame()
         steps_frame.setObjectName("wzSteps")
@@ -80,18 +83,14 @@ class WorkflowWizard(QDockWidget):
         steps_lay.setContentsMargins(8, 6, 8, 6)
         steps_lay.setSpacing(3)
         for i in range(1, 7):
-            row = QWidget()
-            row_lay = QHBoxLayout(row)
-            row_lay.setContentsMargins(0, 0, 0, 0)
-            row_lay.setSpacing(6)
-            glyph = QLabel(_GLYPH_TODO)
-            glyph.setObjectName("wzGlyph")
-            name = QLabel(_(f"wz_step{i}_name"))
-            name.setObjectName("wzStepName")
-            row_lay.addWidget(glyph)
-            row_lay.addWidget(name, 1)
+            row = QPushButton()
+            row.setObjectName("wzStepRow")
+            row.setCursor(Qt.CursorShape.PointingHandCursor)
+            row.setFlat(True)
+            row.setToolTip(_("wz_step_row_tooltip"))
+            row.clicked.connect(lambda _c=False, n=i: self.goto(n))
             steps_lay.addWidget(row)
-            self.step_rows.append((glyph, name))
+            self.step_rows.append(row)
         lay.addWidget(steps_frame)
 
         # ── เนื้อหาขั้นปัจจุบัน ──
@@ -182,6 +181,8 @@ class WorkflowWizard(QDockWidget):
         self.btn_s1_resume.clicked.connect(self._open_saved_csv)
         self.btn_s1_resume.hide()
         lay.addWidget(self.btn_s1_resume)
+        # ทางออกกลางทาง: ล้างงานเดิมทั้งหมดแล้วเริ่มรอบใหม่ (มีทั้งหน้า ① และ ⑥)
+        lay.addWidget(self._big_btn(_("wz_s6_restart"), self.reset))
         lay.addStretch(1)
         return page
 
@@ -279,6 +280,7 @@ class WorkflowWizard(QDockWidget):
         stt = getattr(self.studio, "open_stt_dialog", None)
         if not callable(stt):
             return
+        self._stale_csv = ""  # นำเข้าไฟล์ใหม่ — เลิกลืมงานก่อนหน้า
         self.studio._stt_auto_open_draft = True
         stt()
 
@@ -286,15 +288,18 @@ class WorkflowWizard(QDockWidget):
         path, _sel = QFileDialog.getOpenFileName(
             self.studio, _("wz_s2_pick_srt"), "", _("wz_srt_filter"))
         if path:
+            self._stale_csv = ""  # นำเข้าไฟล์ใหม่ — เลิกลืมงานก่อนหน้า
             self.studio.open_draft_in_table(path)
 
     def _do_game_extract(self):
+        self._stale_csv = ""  # นำเข้าไฟล์ใหม่ — เลิกลืมงานก่อนหน้า
         self.studio.open_game_tool_extract()
 
     def _open_saved_csv(self):
         """เปิดไฟล์งานเดิมจาก wizard_state (resume หลังปิด/เปิดแอปใหม่)"""
         csv = self._saved_csv()
         if csv and os.path.exists(csv):
+            self._stale_csv = ""  # กลับมาทำงานนี้ต่อ — นับสถานะตามปกติ
             self.studio.csv_path = csv
             self.studio._load_csv()
             self._refresh()
@@ -347,11 +352,16 @@ class WorkflowWizard(QDockWidget):
             self.goto(self.step + 1)
 
     def reset(self):
+        """เริ่มงานใหม่จริง — ล้างขั้น/สถานะทั้งหมด และ "ลืม" งานเดิมที่ยังเปิดในตาราง
+        (ตารางเดิมไม่ถูกลบ — นำเข้าไฟล์ใหม่ในขั้น ② แล้วแทนที่ตาม flow เดิม)"""
         self.mode = None
         self.step = 1
         self.done = set()
         self.skipped = set()
+        self._stale_csv = getattr(self.studio, "csv_path", "") or ""
         self.goto(1)
+        if hasattr(self.studio, "show_welcome"):
+            self.studio.show_welcome()
 
     def toggle_collapse(self):
         """ย่อ wizard = เหลือแค่หัว + stepper (เนื้อหาขั้นซ่อน)"""
@@ -367,7 +377,11 @@ class WorkflowWizard(QDockWidget):
 
     def _imported(self):
         csv_path = getattr(self.studio, "csv_path", "")
-        return bool(csv_path and os.path.exists(csv_path) and len(self._studio_rows()) > 0)
+        if not csv_path or not os.path.exists(csv_path) or not self._studio_rows():
+            return False
+        if csv_path == self._stale_csv:
+            return False  # งานรอบก่อนที่ "เริ่มงานใหม่" แล้ว — ไม่นับ จนกว่าจะนำเข้าไฟล์ใหม่
+        return True
 
     def _translated_counts(self):
         rows = self._studio_rows()
@@ -382,7 +396,7 @@ class WorkflowWizard(QDockWidget):
         """อัปเดต glyph ทุกขั้น + เนื้อหาหน้า และตรวจ auto-advance (เปิด CSV แปลครบ → ②③④ ✓)"""
         imported = self._imported()
         done_n, total = self._translated_counts()
-        all_translated = total > 0 and done_n == total
+        all_translated = imported and total > 0 and done_n == total
         if imported:
             self.done.add(2)
         if all_translated:
@@ -398,19 +412,20 @@ class WorkflowWizard(QDockWidget):
                 self.goto(5)
                 return
 
-        # stepper glyphs
-        for i, (glyph, name) in enumerate(self.step_rows, start=1):
+        # stepper rows: glyph สถานะ + ชื่อขั้น (คลิกกระโดดขั้นได้)
+        for i, row in enumerate(self.step_rows, start=1):
             if i in self.done:
-                glyph.setText(_GLYPH_DONE)
+                glyph = _GLYPH_DONE
             elif i in self.skipped:
-                glyph.setText(_GLYPH_SKIP)
+                glyph = _GLYPH_SKIP
             elif i == self.step:
-                glyph.setText(_GLYPH_CURRENT)
+                glyph = _GLYPH_CURRENT
             else:
-                glyph.setText(_GLYPH_TODO)
-            name.setObjectName("wzStepName" if i != self.step else "wzStepNameCur")
-            name.style().unpolish(name)
-            name.style().polish(name)
+                glyph = _GLYPH_TODO
+            row.setText(f"{glyph} {i}. {_(f'wz_step{i}_name')}")
+            row.setProperty("cur", i == self.step)
+            row.style().unpolish(row)
+            row.style().polish(row)
 
         # หัว wizard: กำลังทำอะไร
         step_name = _(f"wz_step{self.step}_name")
@@ -479,7 +494,8 @@ class WorkflowWizard(QDockWidget):
             cfg[CONFIG_KEY] = {
                 "mode": self.mode,
                 "step": self.step,
-                "csv": getattr(self.studio, "csv_path", "") or "",
+                # จำไฟล์งานเฉพาะตอนมีงานค้าง — "เริ่มงานใหม่" แล้วไม่เสนอ resume ไฟล์เก่า
+                "csv": (getattr(self.studio, "csv_path", "") or "") if (self.mode or self.step > 1) else "",
             }
             TStudioCore.save_config(cfg)
         except Exception as e:

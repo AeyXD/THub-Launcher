@@ -632,5 +632,6 @@
   "wz_s6_export_srt": "📤 Export Thai subs (.srt)",
   "wz_s6_pack": "🎮 Pack back into game",
   "wz_s6_done_hint": "Done! Review the output files, or start a new job",
-  "wz_s6_restart": "🧭 Start new job"
+  "wz_s6_restart": "🧭 Start new job",
+  "wz_step_row_tooltip": "Click to jump to this step (navigation only — to clear the current job use 🧭 Start new job)"
 }

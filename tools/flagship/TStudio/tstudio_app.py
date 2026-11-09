@@ -651,9 +651,9 @@ QFrame#wzHeader QLabel { background: transparent; }
 QLabel#wzHeaderTitle { color: #cdd6f4; font-weight: bold; font-size: 13px; }
 QLabel#wzHeaderSub { color: #a6adc8; font-size: 11px; }
 QFrame#wzSteps { background: transparent; border: none; }
-QLabel#wzGlyph { background: transparent; color: #a6adc8; font-size: 12px; }
-QLabel#wzStepName { background: transparent; color: #a6adc8; font-size: 12px; }
-QLabel#wzStepNameCur { background: transparent; color: #89b4fa; font-size: 12px; font-weight: bold; }
+QPushButton#wzStepRow { text-align: left; background: transparent; border: none; border-radius: 4px; padding: 3px 6px; color: #a6adc8; font-size: 12px; }
+QPushButton#wzStepRow:hover { background: #313244; }
+QPushButton#wzStepRow[cur="true"] { color: #89b4fa; font-weight: bold; }
 QFrame#wzPage { background: #181825; border: 1px solid #313244; border-radius: 8px; }
 QFrame#wzPage > QWidget { background: transparent; }
 QLabel#wzHint { background: transparent; color: #cdd6f4; font-size: 12px; }

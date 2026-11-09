@@ -108,7 +108,7 @@ check("open_workflow_wizard → แสดง + จอดซ้าย", not win.w
       and win.dockWidgetArea(win.wizard_dock) == tstudio_app.Qt.DockWidgetArea.LeftDockWidgetArea)
 wz = win.wizard_dock
 check("stepper 6 ขั้น", wz.pages.count() == 6 and wz.step == 1)
-check("ขั้น ① glyph ปัจจุบัน ●", wz.step_rows[0][0].text() == "●")
+check("ขั้น ① glyph ปัจจุบัน ●", wz.step_rows[0].text().startswith("●"))
 
 wz._set_mode("video")
 app.processEvents()
@@ -139,7 +139,7 @@ check("progress n/N = 5/5", "5/5" in wz.lbl_s4_progress.text())
 
 print("[6] ข้ามขั้น + ย่อ wizard + เส้นทาง video ขั้น ⑥")
 wz.skip_current()
-check("ข้าม ⑤ → ⑥ (สถานะ ↷)", wz.step == 6 and 5 in wz.skipped and wz.step_rows[4][0].text() == "↷")
+check("ข้าม ⑤ → ⑥ (สถานะ ↷)", wz.step == 6 and 5 in wz.skipped and wz.step_rows[4].text().startswith("↷"))
 check("โหมดวิดีโอ: ปุ่มส่งออกซับ + พากย์ แพ็กเกมซ่อน",
       not wz.btn_s6_srt.isHidden() and wz.btn_s6_pack.isHidden())
 wz.toggle_collapse()
@@ -152,8 +152,21 @@ state = TStudioCore.load_config().get("wizard_state", {})
 check("wizard_state บันทึก step/mode/csv", state.get("step") == 6 and state.get("mode") == "video"
       and state.get("csv") == win.csv_path)
 wz.reset()
-# หมายเหตุ: done ของ ②–④ อาจกลับมาเองทันทีเพราะ auto-detect (ไฟล์ยังโหลด+แปลครบ) — ตามสเปก
-check("เริ่มงานใหม่ → กลับขั้น ① ล้าง mode/skipped", wz.step == 1 and wz.mode is None and not wz.skipped)
+check("เริ่มงานใหม่ → ขั้น ① ล้าง done/skipped/mode (ลืมงานเดิม)",
+      wz.step == 1 and not wz.done and not wz.skipped and wz.mode is None)
+
+print("[7b] regression: งานเก่าไม่แอบอ้างขั้นหลัง 'เริ่มงานใหม่' (บั๊กที่เจ้าของเจอจริง)")
+wz._set_mode("video")
+wz._tick()
+app.processEvents()
+check("ตารางยังเปิดไฟล์เก่า แต่ wizard รอนำเข้าใหม่ที่ ② (ไม่กระโดดไป ③)",
+      wz.step == 2 and 2 not in wz.done and "ยังไม่มีไฟล์" in wz.lbl_s2_status.text())
+wz._stale_csv = ""  # จำลองผู้ใช้กดปุ่มนำเข้าไฟล์ใหม่ของขั้น ② (ปุ่มเคลียร์ stale เสมอ)
+wz._tick()
+app.processEvents()
+check("นำเข้าใหม่แล้ว → ② ✓ ไป ③ ตามปกติ", 2 in wz.done and wz.step == 3)
+wz.step_rows[0].click()
+check("คลิกแถวขั้นใน stepper กระโดดขั้นได้ (กลับ ①)", wz.step == 1)
 
 print("[8] TVox สืบทอด wizard + ปุ่มมีข้อความ (ระยะ 0-2)")
 TVOX_DIR = os.path.abspath(os.path.join(TSTUDIO_DIR, "..", "TVox"))
