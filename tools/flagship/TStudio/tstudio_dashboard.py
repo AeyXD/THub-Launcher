@@ -76,6 +76,8 @@ class WelcomeScreen(QWidget):
         grid = QGridLayout()
         grid.setSpacing(14)
         cards = [
+            # การ์ดแรก = ทางเข้า Workflow Wizard (spec-workflow-wizard.md ระยะ 1) — พาทำทีละขั้น ①–⑥
+            ("🧭", _("ws_card_wizard_title"), _("ws_card_wizard_desc"), studio.open_workflow_wizard),
             ("📂", _("ws_card_open_title"), _("ws_card_open_desc"), studio.new_project_from_file),
             ("🗂", _("ws_card_project_title"), _("ws_card_project_desc"), studio.open_project_dialog),
             ("🔀", _("ws_card_merge_title"), _("ws_card_merge_desc"), studio.open_merge_dialog),

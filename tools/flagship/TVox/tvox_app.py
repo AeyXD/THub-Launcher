@@ -165,11 +165,11 @@ if HAS_TSTUDIO:
             panel_layout.setContentsMargins(5, 5, 5, 5)
             panel_layout.setSpacing(5)
 
-            # Playback Controls
-            self.btn_open_video = QPushButton("\U0001f4c2")
+            # Playback Controls (ระยะ 0-2: อีโมจิ + ข้อความกำกับ — เห็นชื่อได้โดยไม่ต้องชี้ tooltip)
+            self.btn_open_video = QPushButton(_("btn_open_video_label"))
             self.btn_open_video.setToolTip(_("tooltip_open_video"))
             self.btn_open_video.clicked.connect(self.open_video)
-            self.btn_open_video.setStyleSheet("background: transparent; font-family: 'Segoe UI Symbol', 'Segoe UI Emoji', sans-serif; font-size: 16px; border: none;")
+            self.btn_open_video.setStyleSheet("background: transparent; font-family: 'Segoe UI Symbol', 'Segoe UI Emoji', sans-serif; font-size: 13px; border: none; padding: 2px 4px;")
             
             self.btn_seek_m1 = QPushButton("-1s")
             self.btn_seek_m1.setToolTip(_("tooltip_seek_m1"))
@@ -249,17 +249,17 @@ if HAS_TSTUDIO:
             panel_layout.addWidget(self.btn_loop)
 
             # Whisper ถอดเสียงเป็นซับร่าง (spec-vox-whisper.md Phase S2) — ผ่าน thaistt CLI
-            self.btn_stt = QPushButton("\U0001f9ec")
+            self.btn_stt = QPushButton(_("btn_stt_label"))
             self.btn_stt.setToolTip(_("stt_btn_tooltip"))
-            self.btn_stt.setStyleSheet("background: transparent; color: #89b4fa; font-size: 15px; border: none; padding: 2px;")
+            self.btn_stt.setStyleSheet("background: transparent; color: #89b4fa; font-size: 13px; border: none; padding: 2px 4px;")
             self.btn_stt.clicked.connect(self.open_stt_dialog)
             panel_layout.addWidget(self.btn_stt)
             self.refresh_stt_btn_state()
 
             # AI TTS พากย์อัตโนมัติ (spec-ai-dubbing.md เฟส 1)
-            self.btn_tts = QPushButton("🎙️")
+            self.btn_tts = QPushButton(_("btn_tts_label"))
             self.btn_tts.setToolTip(_("tts_btn_tooltip"))
-            self.btn_tts.setStyleSheet("background: transparent; color: #f5c2e7; font-size: 15px; border: none; padding: 2px;")
+            self.btn_tts.setStyleSheet("background: transparent; color: #f5c2e7; font-size: 13px; border: none; padding: 2px 4px;")
             self.btn_tts.clicked.connect(self.open_tts_dialog)
             panel_layout.addWidget(self.btn_tts)
 
@@ -908,6 +908,12 @@ if HAS_TSTUDIO:
                 QMessageBox.warning(self, _("stt_dialog_title"), msg + ("\n\n" + tail if tail else ""))
                 return
 
+            # Workflow Wizard (ขั้น ②): เรียกผ่าน wizard → เปิดร่างในตารางอัตโนมัติ ไม่ถามซ้ำ
+            if getattr(self, "_stt_auto_open_draft", False):
+                self._stt_auto_open_draft = False
+                self.open_draft_in_table(out_srt)
+                return
+
             box = QMessageBox(self)
             box.setWindowTitle(_("stt_done_title"))
             box.setIcon(QMessageBox.Icon.Information)
@@ -921,30 +927,8 @@ if HAS_TSTUDIO:
             elif box.clickedButton() is btn_srt:
                 QDesktopServices.openUrl(QUrl.fromLocalFile(out_srt))
 
-        def open_draft_in_table(self, srt_path):
-            """SRT ร่าง → ตาราง TStudio ผ่าน Game Tool Subtitles (CSV กลาง + origin_file อัตโนมัติ)"""
-            import tstudio_game_tools as gt
-            from tstudio_core import TStudioCore
-
-            manifest = gt.installed_tools().get("Subtitles")
-            if not manifest:
-                QMessageBox.information(self, _("stt_dialog_title"), _("stt_need_subtitles_tool"))
-                return
-            csv_out = os.path.splitext(srt_path)[0] + ".csv"
-            ok, out = self._run_game_tool_with_progress(
-                lambda: gt.unpack(manifest, srt_path, csv_out), _("stt_unpacking"))
-            if not ok:
-                QMessageBox.critical(self, _("stt_dialog_title"), _("stt_failed_msg", code=out[:300]))
-                return
-            try:
-                cfg = TStudioCore.load_config()
-                cfg["origin_file"] = srt_path
-                TStudioCore.save_config(cfg)
-            except Exception as e:
-                print(f"STT: บันทึก origin_file ไม่ได้ — {e}")
-            self.csv_path = csv_out
-            self._load_csv()
-            self.statusBar().showMessage(_("stt_opened_status", csv=os.path.basename(csv_out), n=len(self.model._data)), 6000)
+        # open_draft_in_table ย้ายไปอยู่ที่ TranslationStudio (tstudio_app) แล้ว —
+        # wizard ขั้น ② และระยะ 0-3 (Ctrl+O .srt) ใช้ร่วมกัน · TVox สืบทอด method นั้น
 
         def open_video(self):
             if not self.player: return

@@ -645,6 +645,20 @@ QProgressBar#dashBar { background: #181825; border: 1px solid #24243a; border-ra
 QProgressBar#dashBar::chunk { background-color: #a6e3a1; border-radius: 4px; }
 QProgressBar#dashTagBar { background: #313244; border: none; border-radius: 3px; }
 QProgressBar#dashTagBar::chunk { background-color: #89b4fa; border-radius: 3px; }
+/* ── Workflow Wizard (tstudio_wizard.py — ใช้สีคู่ที่มีใน _MOCHA_TO_LATTE แล้วทั้งหมด) ── */
+QFrame#wzHeader { background: #181825; border: 1px solid #313244; border-radius: 8px; }
+QFrame#wzHeader QLabel { background: transparent; }
+QLabel#wzHeaderTitle { color: #cdd6f4; font-weight: bold; font-size: 13px; }
+QLabel#wzHeaderSub { color: #a6adc8; font-size: 11px; }
+QFrame#wzSteps { background: transparent; border: none; }
+QLabel#wzGlyph { background: transparent; color: #a6adc8; font-size: 12px; }
+QLabel#wzStepName { background: transparent; color: #a6adc8; font-size: 12px; }
+QLabel#wzStepNameCur { background: transparent; color: #89b4fa; font-size: 12px; font-weight: bold; }
+QFrame#wzPage { background: #181825; border: 1px solid #313244; border-radius: 8px; }
+QFrame#wzPage > QWidget { background: transparent; }
+QLabel#wzHint { background: transparent; color: #cdd6f4; font-size: 12px; }
+QPushButton#wzBigBtn { padding: 8px 10px; text-align: left; }
+QPushButton#wzBtnSkip, QPushButton#wzBtnCollapse { padding: 4px 8px; font-size: 11px; }
 QLabel#dashTagLabel { font-size: 12px; background: transparent; color: #a6adc8; }
 QLabel#dashTagCount { font-size: 12px; background: transparent; color: #6c7086; }
 
@@ -1176,6 +1190,14 @@ class TranslationStudio(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dashboard_dock)
         self.model.dataChanged.connect(lambda *_: self.dashboard_panel.throttled_refresh())
         self.model.modelReset.connect(lambda *_: self.dashboard_panel.throttled_refresh())
+
+        # ── Workflow Wizard dock (spec-workflow-wizard.md ระยะ 1) ──
+        # ตัวช่วยทำงานเป็นขั้น ①–⑥ — orchestration layer เรียก method เดิมทั้งหมด
+        # จอดซ้าย · ซ่อนไว้จนกว่าจะเรียก (การ์ด Welcome / เมนูไฟล์ Ctrl+Shift+N)
+        from tstudio_wizard import WorkflowWizard
+        self.wizard_dock = WorkflowWizard(self)
+        self.wizard_dock.hide()
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.wizard_dock)
 
         # Dummy compatibility docks
         self.dock_main = QDockWidget("Workspace", self)
@@ -2509,16 +2531,27 @@ class TranslationStudio(QMainWindow):
 
         menu.addSeparator()
 
-        # 3. Profile Submenu
+        # 3. Profile Submenu (แชร์รายการเดียวกับเมนู 📁 ไฟล์ ผ่าน _populate_profile_menu)
         current_prof = getattr(self, 'current_profile_name', 'Default')
         prof_menu = menu.addMenu(f"👤 สลับโปรไฟล์เกม ({current_prof})")
+        self._populate_profile_menu(prof_menu)
+
+        menu.addSeparator()
+        menu.addAction("🚪 ออกจากโปรแกรม (Exit)", self.close)
+
+        exec_pos = self.btn_breadcrumb.mapToGlobal(pos if pos is not None else QPoint(0, self.btn_breadcrumb.height()))
+        menu.exec(exec_pos)
+
+    def _populate_profile_menu(self, prof_menu):
+        """รายการโปรไฟล์ (สลับ/สร้าง/เปลี่ยนชื่อ/ลบ/TLM) — ใช้ร่วม breadcrumb + เมนู 📁 ไฟล์"""
+        current_prof = getattr(self, 'current_profile_name', 'Default')
         presets = self._profiles_data.get("presets", {}) if hasattr(self, '_profiles_data') else {}
         for p_name in sorted(presets.keys()):
             term_count = len(presets[p_name].get("glossary", {})) if isinstance(presets[p_name], dict) else 0
             label = f"✓ {p_name}  ({term_count} คำ)" if p_name == current_prof else f"   {p_name}  ({term_count} คำ)"
             act = prof_menu.addAction(label)
             act.triggered.connect(lambda checked, name=p_name: self.on_profile_changed(name))
-            
+
         prof_menu.addSeparator()
         act_new_p = prof_menu.addAction("➕ สร้างโปรไฟล์ใหม่...")
         act_new_p.triggered.connect(self.create_new_profile)
@@ -2529,12 +2562,6 @@ class TranslationStudio(QMainWindow):
         prof_menu.addSeparator()
         act_mgr_p = prof_menu.addAction("✨ TLM Studio & ตั้งค่า AI Prompt...")
         act_mgr_p.triggered.connect(lambda: self.open_prompt_settings(initial_tab=1))
-
-        menu.addSeparator()
-        menu.addAction("🚪 ออกจากโปรแกรม (Exit)", self.close)
-
-        exec_pos = self.btn_breadcrumb.mapToGlobal(pos if pos is not None else QPoint(0, self.btn_breadcrumb.height()))
-        menu.exec(exec_pos)
 
     def _on_top_provider_changed(self, new_provider):
         if not hasattr(self, 'cbo_model') or getattr(self, '_is_syncing_top_models', False):
@@ -3820,6 +3847,48 @@ class TranslationStudio(QMainWindow):
         act_deploy.setShortcut('Ctrl+D')
         act_deploy.triggered.connect(self.deploy_to_game)
         _register_action(act_deploy)
+
+        # --- File Menu (ระยะ 0-1: ย้ายชุดคำสั่งไฟล์จาก breadcrumb ขึ้น menubar — breadcrumb ยังเก็บไว้ซ้ำได้) ---
+        file_menu = menubar.addMenu(_("menu_file"))
+
+        act_wizard = QAction(_("wiz_menu_action"), self)
+        act_wizard.setToolTip(_("wiz_menu_tooltip"))
+        act_wizard.setShortcut(QKeySequence("Ctrl+Shift+N"))
+        act_wizard.triggered.connect(self.open_workflow_wizard)
+        file_menu.addAction(act_wizard)
+        _register_action(act_wizard)
+
+        file_menu.addSeparator()
+        file_menu.addAction(act_new_proj)
+        file_menu.addAction(act_open_proj)
+        file_menu.addAction(act_save_proj)
+        file_menu.addAction(act_save_csv)
+
+        file_menu.addSeparator()
+        file_menu.addAction(act_deploy)
+        act_merge = QAction(_("menu_file_merge"), self)
+        act_merge.triggered.connect(self.open_merge_dialog)
+        file_menu.addAction(act_merge)
+
+        exp_menu = file_menu.addMenu(_("menu_file_export"))
+        act_exp_pua = QAction(_("menu_file_export_pua"), self)
+        act_exp_pua.triggered.connect(self.export_pua_csv)
+        exp_menu.addAction(act_exp_pua)
+        act_exp_origin = QAction(_("menu_file_export_origin"), self)
+        act_exp_origin.triggered.connect(self.export_origin_format)
+        exp_menu.addAction(act_exp_origin)
+
+        file_menu.addSeparator()
+        current_prof = getattr(self, 'current_profile_name', 'Default')
+        prof_menu = file_menu.addMenu(_("menu_file_profile", name=current_prof))
+        self._populate_profile_menu(prof_menu)
+
+        file_menu.addSeparator()
+        act_exit = QAction(_("act_exit"), self)
+        act_exit.setShortcut(QKeySequence.StandardKey.Quit)
+        act_exit.triggered.connect(self.close)
+        file_menu.addAction(act_exit)
+        _register_action(act_exit)
 
         # --- Edit Menu ---
         edit_menu = menubar.addMenu(_("menu_edit"))
@@ -5575,6 +5644,13 @@ class TranslationStudio(QMainWindow):
         except Exception as e:
             print(f"Error remembering recent file: {e}")
 
+    def open_workflow_wizard(self):
+        """เปิด Workflow Wizard (Ctrl+Shift+N / การ์ดหน้า Welcome) — แสดง dock + กลับมาที่ขั้นที่ค้าง"""
+        if not hasattr(self, 'wizard_dock'):
+            return
+        self.wizard_dock.show()
+        self.wizard_dock.raise_()
+
     def show_welcome(self):
         """กลับสู่หน้าแรก (Ctrl+Shift+H)"""
         if hasattr(self, 'workspace_stack'):
@@ -5703,6 +5779,32 @@ class TranslationStudio(QMainWindow):
         self.statusBar().showMessage(_("gt_extract_ok_status", csv=os.path.basename(csv_out)), 5000)
         QMessageBox.information(self, _("success_title"), _("gt_extract_ok", csv=os.path.basename(csv_out), n=len(self.model._data) if self.model else 0))
 
+    def open_draft_in_table(self, srt_path):
+        """SRT ร่าง → ตาราง TStudio ผ่าน Game Tool Subtitles (CSV กลาง + origin_file อัตโนมัติ)
+        (ย้ายมาจาก TVoxApp — wizard ขั้น ② และระยะ 0-3 ใช้ร่วมกัน · TVox สืบทอด method นี้)"""
+        import tstudio_game_tools as gt
+        from tstudio_core import TStudioCore
+
+        manifest = gt.installed_tools().get("Subtitles")
+        if not manifest:
+            QMessageBox.information(self, _("stt_dialog_title"), _("stt_need_subtitles_tool"))
+            return
+        csv_out = os.path.splitext(srt_path)[0] + ".csv"
+        ok, out = self._run_game_tool_with_progress(
+            lambda: gt.unpack(manifest, srt_path, csv_out), _("stt_unpacking"))
+        if not ok:
+            QMessageBox.critical(self, _("stt_dialog_title"), _("stt_failed_msg", code=out[:300]))
+            return
+        try:
+            cfg = TStudioCore.load_config()
+            cfg["origin_file"] = srt_path
+            TStudioCore.save_config(cfg)
+        except Exception as e:
+            print(f"STT: บันทึก origin_file ไม่ได้ — {e}")
+        self.csv_path = csv_out
+        self._load_csv()
+        self.statusBar().showMessage(_("stt_opened_status", csv=os.path.basename(csv_out), n=len(self.model._data)), 6000)
+
     def pack_back_to_game(self, manifest=None, csv_override=None):
         """Pack CSV ปัจจุบันกลับเป็นไฟล์เกมด้วย Game Tool (เลือกปลายทาง + ยืนยันก่อนเขียน)
         csv_override = ใช้ CSV อื่นแทน self.csv_path (เช่น temp ที่ผ่าน Thai Wrap จาก deploy flow)"""
@@ -5825,6 +5927,23 @@ class TranslationStudio(QMainWindow):
             if file_path.lower().endswith('.ttarch2'):
                 self.open_telltale_archive(file_path)
                 return
+            # ระยะ 0-3: กัน .srt ชน root parser (กับดักรอบที่ 1 — ได้ _parsed.csv อ่านอย่างเดียว)
+            # เสนอ Game Tool Subtitles ก่อน (CSV กลาง + pack กลับเป็น .srt ได้) · parser ทั่วไปเป็นทางเลือก
+            if file_path.lower().endswith('.srt'):
+                box = QMessageBox(self)
+                box.setWindowTitle(_("srt_route_title"))
+                box.setIcon(QMessageBox.Icon.Question)
+                box.setText(_("srt_route_msg", file=os.path.basename(file_path)))
+                btn_gt = box.addButton(_("srt_route_gametool"), QMessageBox.ButtonRole.YesRole)
+                btn_generic = box.addButton(_("srt_route_generic"), QMessageBox.ButtonRole.NoRole)
+                box.addButton(QMessageBox.StandardButton.Cancel)
+                box.exec()
+                clicked = box.clickedButton()
+                if clicked is btn_gt:
+                    self.open_draft_in_table(file_path)
+                    return
+                if clicked is not btn_generic:
+                    return  # ยกเลิก — ไม่เข้า parser ใด
             self.statusBar().showMessage(_("loading_file_status"))
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             

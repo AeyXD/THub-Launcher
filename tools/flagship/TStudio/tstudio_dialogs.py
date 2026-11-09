@@ -1539,6 +1539,7 @@ class ShortcutsCheatsheetDialog(QDialog):
 
         categories = [
             ("📁 การจัดการไฟล์และโปรเจกต์ (File & Project)", [
+                ("Ctrl+Shift+N", "เริ่มงานใหม่แบบพาทำทีละขั้น (Workflow Wizard)"),
                 ("Ctrl+N", "เริ่มแปลไฟล์ใหม่ / นำเข้าไฟล์แปล (Start New Translation)"),
                 ("Ctrl+O", "เปิดโปรเจกต์แปล / เปิดไฟล์อื่น (Open File/Project)"),
                 ("Ctrl+S", "บันทึกข้อมูล (Save Project / File)"),

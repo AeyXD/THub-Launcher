@@ -68,5 +68,8 @@
   "tts_stop_row": "⏹ Stop playing",
   "tts_no_wav": "🔇 No audio file yet (press 🎙️ to generate first)",
   "tvox_player_qt_info": "🎬 Video player is using the built-in engine (Qt · FFmpeg) — mpv is broken on macOS (known bug), temporarily switched.\n\nAll features work: play/pause · seek · A-B loop · speed · subtitles · STT · AI TTS.\n\nSupports mp4/mkv/webm/mov/wav — will switch back to mpv automatically once the binding is fixed.",
-  "tvox_player_none_macos": "🎬 No video backend available (QtMultimedia missing + mpv disabled on macOS).\n\nReinstall PyQt6 in the TStudio venv: pip install --force-reinstall PyQt6"
+  "tvox_player_none_macos": "🎬 No video backend available (QtMultimedia missing + mpv disabled on macOS).\n\nReinstall PyQt6 in the TStudio venv: pip install --force-reinstall PyQt6",
+  "btn_open_video_label": "📂 Open Video",
+  "btn_stt_label": "🧬 Transcribe",
+  "btn_tts_label": "🎙️ AI Dub"
 }
