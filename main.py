@@ -356,7 +356,8 @@ class ProjectWizardWindow(ctk.CTkToplevel):
         self.destroy()
 
 # Constants
-CURRENT_VERSION = "2.2.0"
+# ⚠️ identity ของ fork (เจ้าของสั่ง 9/11) — แยกเวอร์ชันจาก upstream · ห้ามรวมการเปลี่ยนบรรทัดนี้ใน PR กลับ upstream
+CURRENT_VERSION = "2.2.1"
 UPDATE_FILE_PATH = os.path.join(os.path.dirname(__file__), "updates.json")
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hub_config.json")
 KNOWLEDGE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Modding-Knowledge"))

@@ -3,7 +3,7 @@
   <h1>🚀 THub Launcher : The Flagship Suite</h1>
   <p><b>Ultimate Game Modding & Localization Environment — Thai Pipeline Edition</b></p>
 
-  [![Version](https://img.shields.io/badge/Version-2.2.0_fork-blue.svg?style=for-the-badge)](#)
+  [![Version](https://img.shields.io/badge/Version-2.2.1_(fork)-blue.svg?style=for-the-badge)](#)
   [![Platform](https://img.shields.io/badge/Platform-macOS_·_Windows-lightgrey.svg?style=for-the-badge)](#)
   [![Python](https://img.shields.io/badge/Built_with-Python_3.12-yellow.svg?style=for-the-badge)](#)
   [![UI](https://img.shields.io/badge/UI-PyQt6_·_CustomTkinter-green.svg?style=for-the-badge)](#)
