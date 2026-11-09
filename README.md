@@ -36,7 +36,7 @@ AI Dubbing (edge-tts) → WAV รายแถว + preview mix ฟังใน�
 
 | เครื่องมือ | ใช้ทำอะไร | สถานะ |
 |---|---|---|
-| thaiwrap | แทรก ZWSP/hairspace ที่รอยต่อคำไทย กันสระเกาะผิดตำแหน่ง | ✅ ใช้งาน (offline) |
+| [thaiwrap](https://github.com/AeyXD/thaiwrap) | แทรก ZWSP/hairspace ที่รอยต่อคำไทย กันสระเกาะผิดตำแหน่ง | ✅ ใช้งาน (offline) |
 | thaistt (Whisper) | ถอดเสียงวิดีโอ/เสียง → SRT ร่าง ใน TVox | ✅ ใช้งาน (offline) |
 | GLQA checker | ตรวจคำแปล (empty / typo / ความยาว) + QA gate ก่อน deploy | ✅ ใช้งาน (offline) |
 | [TFormat-Plugins](https://github.com/AeyXD/TFormat-Plugins) | Parser + Game Tools รายเกม/รายฟอร์แมต (manifest-driven) | ✅ ติดตั้งผ่าน Plugin Manager |
