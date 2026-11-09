@@ -131,6 +131,7 @@ python3.12 -m venv .venv
 .venv/bin/pip install customtkinter pillow markdown packaging ddgs PyQt6 Pillow numpy
 
 # TStudio venv — สร้างอัตโนมัติโดย run_tstudio_macos.sh (PyQt6 requests numpy)
+#   + edge-tts (พากย์ AI) และ UnityPy (ไฟล์ Unity .bundle) ติดตั้งเพิ่มด้วย pip
 
 # เครื่องมือภายนอก (subprocess — ไม่ bundle)
 # thaiwrap: Playgound/thaiwrap (build หรือโหลด publish/osx-arm64)
