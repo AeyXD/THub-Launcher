@@ -99,6 +99,10 @@ development/tests/boot_test.py  ← ทดสอบบูต offscreen (16 จ�
 9. **fork ↔ upstream** — push ได้เฉพาะ origin (`AeyXD/THub-Launcher`) · ⛔ PR กลับ upstream
    ต้องรอคำสั่งเจ้าของเท่านั้น ห้าม agent สร้าง/ส่ง/เตรียม branch เอง (กฎ `../AGENTS.md` ข้อ 1)
    · PR candidates: บั๊ก PUA (PR #2 รอ review), KB index links, Tool Library OS-aware + ffmpeg brew
+10. **NOTICE = ของ fork ห้ามรวมใน PR กลับ upstream** — เพิ่ม dependency/พอร์ตโค้ด/ทรัพย์สินใหม่
+    ต้องอัปเดต `NOTICE` ที่ root ใน commit เดียวกัน (กติกา `../docs/notices-plan.md` §4)
+    · ห้ามแก้หัวไฟล์ license ของ upstream เอง เช่น main.py ที่อ้าง GPL-3.0 ขณะที่ root = AGPL-3.0
+      (ความไม่สอดคล้องจาก upstream — บันทึกไว้ใน HANDOVER เท่านั้น)
 10. **HANDOVER อยู่ใน repo รวม** — `.handover` = symlink → `../../handover-notes/THub-Launcher`
     (repo private `AeyXD/handover-notes`) · commit HANDOVER **ที่ repo รวม** · GUIDE: `handover-notes/GUIDE.md`
 

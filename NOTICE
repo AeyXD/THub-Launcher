@@ -1,0 +1,58 @@
+THub-Launcher (fork) — ส่วนประกอบของบุคคลที่สาม
+(จัดทำตาม docs/notices-plan.md §2 ของ workspace · สแกน imports จริงของแอป 10/11/2026)
+
+0) ฐานโค้ดต้นทาง
+   fork ของ memolyviza2012-max/THub-Launcher (GNU AGPL-3.0 — ดู LICENSE ที่ root)
+   ส่วนที่ fork เพิ่มเอง (macOS port · Workflow Wizard · AI TTS · video player backends
+   · Thai pipeline bridges ฯลฯ) อยู่ภายใต้ AGPL-3.0 เช่นเดียวกัน
+   หมายเหตุ: หัวไฟล์ main.py ของ upstream อ้าง "GNU GPL version 3" ขณะที่ LICENSE
+   ที่ root เป็น AGPL-3.0 — ความไม่สอดคล้องนี้มาจาก upstream ฝั่ง fork เก็บตามเดิม
+
+1) PyQt6  https://www.riverbankcomputing.com/software/pyqt/  (GPL-3.0-only)
+   GUI framework ของแอป flagship ทั้งหมด — ติดตั้งผ่าน pip ใน venv ของผู้ใช้ (ไม่ bundle)
+   · PyQt6-sip (BSD-2-Clause) ติดตั้งมาด้วยกัน
+   · Qt เอง (รวม Qt Multimedia ที่ใช้เป็น player backend ของ TVox บน macOS) = LGPL-3.0
+
+2) edge-tts  https://github.com/rany2/edge-tts  (GPL-3.0)
+   แปลงข้อความไทยเป็นเสียงพากย์ (AI Dubbing ของ TVox) — เรียกผ่าน subprocess
+   (CLI ใน venv ของ TStudio · ไม่ bundle)
+
+3) python-mpv + libmpv  https://github.com/jaseg/python-mpv · https://mpv.io
+   (สืบทอดใบอนุญาตของ libmpv ตาม build: GPL-2.0+ หรือ LGPL-2.1+)
+   player backend หลักบน Windows/Linux — ผู้ใช้จัดหา libmpv-2.dll เอง
+   (แอปมีข้อความแนะนำ) · บน macOS ปิดใช้งานชั่วคราว (python-mpv SIGSEGV — ใช้ §1 แทน)
+
+4) FFmpeg / ffprobe  https://ffmpeg.org  (LGPL-2.1+ หรือ GPL-2.0+ แล้วแต่รุ่น build)
+   ตัวแปลง/ผสมสื่อ (waveform · ปรับเสียง TTS · ทำวิดีโอพากย์ dub/mix)
+   — external binary ที่ผู้ใช้ติดตั้งเอง (brew ฯลฯ · ไม่ bundle)
+
+5) แพ็กเกจ Python ใน venv ของผู้ใช้ (pip · ไม่ bundle) — ตามที่โค้ด import จริง:
+   กลุ่ม Launcher หลัก (root venv):
+   · customtkinter (CC0-1.0) · markdown (BSD-3) · ddgs (MIT)
+   · packaging (Apache-2.0 OR BSD-2-Clause)
+   กลุ่มแอป flagship (venv ของ TStudio ที่ทุกแอปแชร์):
+   · requests (Apache-2.0) · numpy (BSD-3-Clause และองค์ประกอบ 0BSD/MIT/Zlib/CC0)
+   · Pillow (MIT-CMU) · UnityPy (MIT — ไฟล์ Unity .bundle)
+   เฉพาะแอป/ฟีเจอร์:
+   · chardet (LGPL-2.1 — ตรวจ encoding ไฟล์นำเข้า)
+   · fontTools (MIT — ทำฟอนต์ PUA ของ TFont/TGlyph/Unity pipeline)
+   · scipy (BSD-3) + sounddevice (MIT) — TVoxRecorder (อัดเสียงพากย์มือ)
+   โค้ด helper/plugin ที่มากับ repo ฝั่ง upstream (ไม่ได้เปิดใช้ทุกตัว):
+   · lz4 (BSD-3) · py7zr (LGPL-2.1) · pywinauto (BSD-3, Windows เท่านั้น)
+   · pylocres (MIT — ทางแทน UnrealLocres บน macOS)
+
+6) ตัวแปลงไฟล์เกม (parser/Game Tools) และเครื่องมือภายนอก
+   · parser/Game Tools ดึงตอนรันจาก fork AeyXD/TFormat-Plugins —
+     สถานะสิทธิ์ดูใน NOTICE ของ repo นั้น
+   · เครื่องมือสายไทยที่เรียกผ่าน subprocess ทั้งหมด (thaistt · thaiwrap · GLQA)
+     ไม่ bundle — ดู NOTICE ของแต่ละ repo
+   · UTMT (tools/bin/UTMT — GPL-3.0 · ใบอนุญาตใน tools/bin/UTMT/LICENSE.txt)
+     เครื่องมือของบุคคลที่สามที่ upstream รวบรวมมา (ใช้ได้เฉพาะ Windows)
+   · ซอฟต์แวร์อื่นที่ Tool Library แนะนำให้ดาวน์โหลด (FModel, QuickBMS ฯลฯ)
+     ผู้ใช้ดาวน์โหลด/ติดตั้งเอง — ใช้ตามใบอนุญาตของเจ้าของแต่ละตัว
+
+ผู้ใช้ต้องปฏิบัติตามเงื่อนไขใบอนุญาตของส่วนที่ตนเลือกใช้/ติดตั้งเอง
+
+—— กติกาถาวรของ repo นี้ ——
+· เพิ่ม dependency/พอร์ตโค้ด/ทรัพย์สินใหม่ → อัปเดตไฟล์นี้ใน commit เดียวกัน
+· ไฟล์ NOTICE = ของ fork · ⛔ ห้ามรวมใน PR กลับ upstream (กฎเดียวกับ AGENTS.md)
